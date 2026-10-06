@@ -8,6 +8,7 @@ import { ActionButton, ActionLink } from "@/components/onboarding/action-button"
 import { Field } from "@/components/onboarding/field";
 import { Screen } from "@/components/onboarding/screen";
 import { AFTER_AUTH_PATH, signUpWithEmail } from "@/lib/auth";
+import { FORWARD } from "@/components/page-transition";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 8;
@@ -53,7 +54,7 @@ export default function EmailSignupPage() {
     });
     setSubmitting(false);
 
-    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH);
+    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH, { transitionTypes: FORWARD });
     if (result.status === "check-email") setSentTo(email.trim());
     if (result.status === "error") setFormError(result.message);
   };
@@ -83,7 +84,7 @@ export default function EmailSignupPage() {
       aside={
         <p className="text-[0.9375rem] text-haze">
           Have an account?{" "}
-          <Link href="/login" className="font-semibold text-ink">
+          <Link href="/login" transitionTypes={FORWARD} className="font-semibold text-ink">
             Log in
           </Link>
         </p>

@@ -3,6 +3,7 @@
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { PageTransition } from "@/components/page-transition";
 import { cn } from "@/lib/utils";
 
 /** Full-height mobile screen that respects the notch and home indicator. */
@@ -20,6 +21,7 @@ export function Screen({
   const router = useRouter();
 
   return (
+    <PageTransition>
     <main
       className={cn(
         "mx-auto flex min-h-dvh w-full max-w-md flex-col px-6 pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)]",
@@ -45,5 +47,6 @@ export function Screen({
       )}
       {children}
     </main>
+    </PageTransition>
   );
 }

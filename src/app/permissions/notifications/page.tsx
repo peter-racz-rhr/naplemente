@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ActionButton } from "@/components/onboarding/action-button";
 import { PermissionScreen } from "@/components/onboarding/permission-screen";
 import { markOnboarded } from "@/lib/onboarding";
+import { FORWARD } from "@/components/page-transition";
 
 type State = "idle" | "asking" | "granted" | "denied" | "unsupported";
 
@@ -23,7 +24,7 @@ export default function NotificationsPage() {
 
   const finish = () => {
     markOnboarded();
-    router.replace("/home");
+    router.replace("/home", { transitionTypes: FORWARD });
   };
 
   const ask = async () => {
@@ -43,7 +44,6 @@ export default function NotificationsPage() {
 
   return (
     <PermissionScreen
-      step={{ current: 2, total: 2 }}
       icon={<BellRing className="size-7" />}
       title="Get a nudge before the sun goes down"
       body={body[state]}

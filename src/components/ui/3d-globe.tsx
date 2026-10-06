@@ -69,6 +69,12 @@ export interface Globe3DConfig {
   sunDirection?: [number, number, number];
   /** Color of the glow along the day/night line */
   terminatorColor?: string;
+  /**
+   * Spin speed when the globe first appears; it eases down to
+   * autoRotateSpeed over spinDownSeconds (0 = no intro spin).
+   */
+  introSpinSpeed?: number;
+  spinDownSeconds?: number;
 }
 
 interface Globe3DProps {
@@ -529,6 +535,20 @@ function Scene({
     onReady?.();
   }, [onReady]);
 
+  // Intro spin: start fast, ease out to the resting speed.
+  const spinStart = useRef<number | null>(null);
+  useFrame((state) => {
+    const controls = state.controls as { autoRotateSpeed: number } | null;
+    if (!controls || config.introSpinSpeed <= 0) return;
+    const elapsed = state.clock.elapsedTime;
+    if (spinStart.current === null) spinStart.current = elapsed;
+    const t = Math.min((elapsed - spinStart.current) / config.spinDownSeconds, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    controls.autoRotateSpeed =
+      config.introSpinSpeed +
+      (config.autoRotateSpeed - config.introSpinSpeed) * eased;
+  });
+
   // Set initial camera position (pulled back to accommodate markers)
   React.useEffect(() => {
     camera.position.set(0, 0, config.radius * 3.5);
@@ -623,6 +643,8 @@ const defaultConfig: Required<Globe3DConfig> = {
   nightTextureUrl: null,
   sunDirection: [1, 0.25, 0.2],
   terminatorColor: "#ff7a3d",
+  introSpinSpeed: 0,
+  spinDownSeconds: 3,
 };
 
 export function Globe3D({

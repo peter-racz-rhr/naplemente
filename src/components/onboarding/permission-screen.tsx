@@ -13,10 +13,11 @@ export function PermissionScreen({
   title: string;
   body: ReactNode;
   children: ReactNode;
-  step: { current: number; total: number };
+  step?: { current: number; total: number };
 }) {
   return (
     <Screen>
+      {step && (
       <div
         className="flex h-12 items-center gap-2"
         role="progressbar"
@@ -36,6 +37,7 @@ export function PermissionScreen({
           />
         ))}
       </div>
+      )}
       <div className="flex flex-1 flex-col justify-center">
         <div className="mb-8 grid size-16 place-items-center rounded-[1.25rem] bg-dusk text-gold">
           {icon}

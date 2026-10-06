@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useMemo } from "react";
 import type { Globe3DConfig, GlobeMarker } from "@/components/ui/3d-globe";
 
 const Globe3D = dynamic(
@@ -36,21 +37,39 @@ const CONFIG: Globe3DConfig = {
   terminatorColor: "#ff7a3d",
   showAtmosphere: false,
   autoRotateSpeed: 0.45,
+  introSpinSpeed: 9,
+  spinDownSeconds: 3.2,
   enableZoom: false,
   initialRotation: { x: 0, y: 0 },
 };
 
+const YOU_DOT = sunDot("#ffffff", "#ffb54d");
+
 export function SunsetGlobe({
   className,
   onReady,
+  you,
 }: {
   className?: string;
   onReady?: () => void;
+  /** The viewer's position, pinned once they share their location. */
+  you?: { latitude: number; longitude: number } | null;
 }) {
+  const markers = useMemo(
+    () =>
+      you
+        ? [
+            ...SPOTS,
+            { lat: you.latitude, lng: you.longitude, label: "You", src: YOU_DOT },
+          ]
+        : SPOTS,
+    [you],
+  );
+
   return (
     <Globe3D
       className={className}
-      markers={SPOTS}
+      markers={markers}
       config={CONFIG}
       onReady={onReady}
     />

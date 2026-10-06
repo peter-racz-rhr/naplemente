@@ -7,6 +7,7 @@ import { ActionButton } from "@/components/onboarding/action-button";
 import { Field } from "@/components/onboarding/field";
 import { Screen } from "@/components/onboarding/screen";
 import { updatePassword } from "@/lib/auth";
+import { FORWARD } from "@/components/page-transition";
 
 const MIN_PASSWORD = 8;
 
@@ -27,7 +28,7 @@ export default function ResetPasswordPage() {
     setError(null);
     const result = await updatePassword(password);
     setSaving(false);
-    if (result.status === "signed-in") router.replace("/home");
+    if (result.status === "signed-in") router.replace("/home", { transitionTypes: FORWARD });
     if (result.status === "error") setError(result.message);
   };
 

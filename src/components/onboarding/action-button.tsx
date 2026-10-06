@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { FORWARD } from "@/components/page-transition";
 import { cn } from "@/lib/utils";
 
 type Variant = "primary" | "secondary" | "quiet";
@@ -13,7 +14,7 @@ const styles: Record<Variant, string> = {
 };
 
 const base =
-  "inline-flex h-14 w-full items-center justify-center gap-3 rounded-full px-6 text-[1.0625rem] font-semibold tracking-[-0.01em] transition-colors outline-offset-4 focus-visible:outline-2 disabled:cursor-not-allowed";
+  "inline-flex h-14 w-full items-center justify-center gap-3 rounded-full px-6 text-[1.0625rem] font-semibold tracking-[-0.01em] transition-[background-color,color,border-color,scale] duration-200 outline-offset-4 select-none focus-visible:outline-2 enabled:active:scale-[0.97] disabled:cursor-not-allowed [a&]:active:scale-[0.97]";
 
 export function ActionButton({
   variant = "primary",
@@ -38,7 +39,11 @@ export function ActionLink({
   ...props
 }: ComponentProps<typeof Link> & { variant?: Variant; icon?: ReactNode }) {
   return (
-    <Link className={cn(base, styles[variant], className)} {...props}>
+    <Link
+      transitionTypes={FORWARD}
+      className={cn(base, styles[variant], className)}
+      {...props}
+    >
       {icon}
       {children}
     </Link>

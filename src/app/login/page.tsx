@@ -9,6 +9,7 @@ import { DemoNote } from "@/components/onboarding/demo-note";
 import { Field } from "@/components/onboarding/field";
 import { AppleIcon, GoogleIcon } from "@/components/onboarding/provider-icons";
 import { Screen } from "@/components/onboarding/screen";
+import { BACK, FORWARD } from "@/components/page-transition";
 import {
   AFTER_AUTH_PATH,
   continueWithProvider,
@@ -49,7 +50,7 @@ function LoginCard() {
     setNotice(null);
     const result = await logInWithEmail({ email: email.trim(), password });
     setBusy(null);
-    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH);
+    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH, { transitionTypes: FORWARD });
     if (result.status === "error") setNotice({ tone: "error", text: result.message });
   };
 
@@ -76,7 +77,7 @@ function LoginCard() {
     setBusy(provider);
     setNotice(null);
     const result = await continueWithProvider(provider);
-    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH);
+    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH, { transitionTypes: FORWARD });
     if (result.status === "error") {
       setBusy(null);
       setNotice({ tone: "error", text: result.message });
@@ -184,7 +185,7 @@ export default function LoginPage() {
       </div>
       <p className="text-center text-[0.9375rem] text-haze">
         New here?{" "}
-        <Link href="/welcome?intro=skip" className="font-semibold text-ink">
+        <Link href="/welcome?intro=skip" transitionTypes={BACK} className="font-semibold text-ink">
           Create an account
         </Link>
       </p>

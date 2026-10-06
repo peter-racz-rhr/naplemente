@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AFTER_AUTH_PATH, continueWithProvider, type Provider } from "@/lib/auth";
 import { ActionButton, ActionLink } from "./action-button";
 import { AppleIcon, GoogleIcon } from "./provider-icons";
+import { FORWARD } from "@/components/page-transition";
 
 export function ProviderButtons({ emailHref }: { emailHref?: string }) {
   const router = useRouter();
@@ -16,7 +17,7 @@ export function ProviderButtons({ emailHref }: { emailHref?: string }) {
     setPending(provider);
     setError(null);
     const result = await continueWithProvider(provider);
-    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH);
+    if (result.status === "signed-in") router.push(AFTER_AUTH_PATH, { transitionTypes: FORWARD });
     if (result.status === "error") {
       setError(result.message);
       setPending(null);

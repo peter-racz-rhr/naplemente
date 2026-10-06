@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DemoNote } from "@/components/onboarding/demo-note";
 import { ProviderButtons } from "@/components/onboarding/provider-buttons";
 import { Screen } from "@/components/onboarding/screen";
+import { FORWARD } from "@/components/page-transition";
 
 export default function SignupPage() {
   return (
@@ -20,7 +21,7 @@ export default function SignupPage() {
         <ProviderButtons emailHref="/signup/email" />
         <p className="text-center text-[0.9375rem] text-haze">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-ink">
+          <Link href="/login" transitionTypes={FORWARD} className="font-semibold text-ink">
             Log in
           </Link>
         </p>

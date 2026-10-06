@@ -8,8 +8,8 @@ export type AuthResult =
   | { status: "redirecting" }
   | { status: "error"; message: string };
 
-/** Where people land after any sign-in: the first permission screen. */
-export const AFTER_AUTH_PATH = "/permissions/location";
+/** Where people land after any sign-in. Location was already asked on the welcome screen. */
+export const AFTER_AUTH_PATH = "/permissions/notifications";
 
 function callbackUrl() {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(AFTER_AUTH_PATH)}`;
