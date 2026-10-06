@@ -15,8 +15,8 @@ const ITEMS: DockItem[] = [
 
 export function AppDock() {
   const pathname = usePathname();
-  // A chat has its own message bar at the bottom.
-  if (pathname.startsWith("/friends/")) return null;
+  // Chats and spot pages are full-screen with their own back button.
+  if (pathname.startsWith("/friends/") || pathname.startsWith("/spots/")) return null;
 
   // Tabs to the right slide in from the right, tabs to the left from the left.
   const current = ITEMS.findIndex((item) => item.href === pathname);

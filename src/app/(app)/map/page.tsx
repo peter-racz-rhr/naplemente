@@ -1,12 +1,14 @@
 "use client";
 
 import "@/lib/maplibre-worker";
-import { ImagePlus, LocateFixed, Trash2, X } from "lucide-react";
+import { ChevronRight, ImagePlus, LocateFixed, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
+import { SunsetDirection } from "@/components/sunset-direction";
 import { Field } from "@/components/onboarding/field";
-import { PageTransition } from "@/components/page-transition";
+import { FORWARD, PageTransition } from "@/components/page-transition";
 import { LiquidIconButton } from "@/components/ui/liquid-icon-button";
 import { LiquidSurface } from "@/components/ui/liquid-surface";
 import {
@@ -18,9 +20,11 @@ import {
   type MapRef,
 } from "@/components/ui/map";
 import { PEOPLE } from "@/lib/demo-people";
+import { postForPerson } from "@/lib/demo-posts";
 import { storeMedia } from "@/lib/media-store";
 import { useFriendIds } from "@/lib/social";
-import { removeSpot, saveSpot, useSpots } from "@/lib/spots";
+import { postSpotHref, spotHref } from "@/lib/spot-detail";
+import { saveSpot, useSpots } from "@/lib/spots";
 import { formatClock, nextSunset } from "@/lib/sun";
 import { useHere } from "@/lib/use-here";
 import { cn } from "@/lib/utils";
@@ -38,6 +42,18 @@ function SunsetLine({ latitude, longitude }: Draft) {
     <>
       Sunset {next.isToday ? "today" : "tomorrow"} at {formatClock(next.at)}
     </>
+  );
+}
+
+function OpenSpotLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      transitionTypes={FORWARD}
+      className="mt-3 inline-flex items-center gap-0.5 text-sm font-semibold text-ink"
+    >
+      Open spot <ChevronRight className="size-4" aria-hidden />
+    </Link>
   );
 }
 
@@ -245,6 +261,7 @@ export default function MapPage() {
                 <p className="mt-2 text-sm text-gold">
                   <SunsetLine {...person.spot} />
                 </p>
+                <OpenSpotLink href={postSpotHref(postForPerson(person.id)?.id ?? "")} />
               </MarkerPopup>
             </MapMarker>
           ))}
@@ -271,17 +288,14 @@ export default function MapPage() {
                   <p className="mt-2 text-sm text-gold">
                     <SunsetLine {...spot} />
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => removeSpot(spot.id)}
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm text-error"
-                  >
-                    <Trash2 className="size-4" aria-hidden /> Remove spot
-                  </button>
+                  <OpenSpotLink href={spotHref(spot.id)} />
                 </div>
               </MarkerPopup>
             </MapMarker>
           ))}
+
+          {/* Where the sun goes down tonight, from where you are */}
+          {here.coords && <SunsetDirection {...here.coords} />}
 
           {here.coords && (
             <MapMarker latitude={here.coords.latitude} longitude={here.coords.longitude}>

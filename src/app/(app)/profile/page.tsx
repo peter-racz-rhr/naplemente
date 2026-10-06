@@ -1,14 +1,16 @@
 "use client";
 
 import { LogOut, MapPin } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
-import { BACK, PageTransition } from "@/components/page-transition";
+import { BACK, FORWARD, PageTransition } from "@/components/page-transition";
 import { getSupabase } from "@/lib/supabase/client";
 import { resetOnboarding } from "@/lib/onboarding";
 import { useDisplayName } from "@/lib/profile";
 import { useFriendIds } from "@/lib/social";
+import { spotHref } from "@/lib/spot-detail";
 import { useSpots } from "@/lib/spots";
 
 const savedOn = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" });
@@ -57,7 +59,12 @@ export default function ProfilePage() {
           ) : (
             <ul className="mt-2 divide-y divide-dusk-edge">
               {spots.map((spot) => (
-                <li key={spot.id} className="flex items-center gap-3 py-3.5">
+                <li key={spot.id}>
+                  <Link
+                    href={spotHref(spot.id)}
+                    transitionTypes={FORWARD}
+                    className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3.5 hover:bg-dusk active:bg-dusk"
+                  >
                   {spot.media?.[0] ? (
                     <MediaThumb media={spot.media[0]} className="size-12 shrink-0 rounded-xl" />
                   ) : (
@@ -74,6 +81,7 @@ export default function ProfilePage() {
                   <span className="shrink-0 text-sm text-haze">
                     {savedOn.format(new Date(spot.savedAt))}
                   </span>
+                  </Link>
                 </li>
               ))}
             </ul>

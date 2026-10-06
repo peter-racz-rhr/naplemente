@@ -86,3 +86,10 @@ export function sendMessage(
     onTyping(false);
   };
 }
+
+const likesStore = createLocalStore<string[]>("naplemente:likes", []);
+export const useLikedPosts = likesStore.useValue;
+export const toggleLike = (postId: string) =>
+  likesStore.set((ids) =>
+    ids.includes(postId) ? ids.filter((id) => id !== postId) : [...ids, postId],
+  );

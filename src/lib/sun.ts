@@ -1,4 +1,4 @@
-import { getTimes } from "suncalc";
+import { getPosition, getTimes } from "suncalc";
 
 export type NextSunset =
   | { kind: "sunset"; at: Date; isToday: boolean }
@@ -63,4 +63,40 @@ export function describeSunset(
         headline: `Next sunset in ${countdown}`,
         detail: `Tomorrow at ${formatClock(next.at)}, where you are.`,
       };
+}
+
+/**
+ * Compass bearing (degrees clockwise from north) to where the sun touches
+ * the horizon at the given sunset. SunCalc 2 already reports azimuth this way.
+ */
+export function sunsetBearing(latitude: number, longitude: number, at: Date) {
+  return getPosition(at, latitude, longitude).azimuth;
+}
+
+const COMPASS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+export const compassPoint = (bearing: number) =>
+  COMPASS[Math.round(bearing / 22.5) % 16];
+
+/** The point `km` away from a start point along a bearing (great circle). */
+export function destination(
+  latitude: number,
+  longitude: number,
+  bearing: number,
+  km: number,
+): [number, number] {
+  const R = 6371;
+  const δ = km / R;
+  const θ = (bearing * Math.PI) / 180;
+  const φ1 = (latitude * Math.PI) / 180;
+  const λ1 = (longitude * Math.PI) / 180;
+  const φ2 = Math.asin(
+    Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(θ),
+  );
+  const λ2 =
+    λ1 +
+    Math.atan2(
+      Math.sin(θ) * Math.sin(δ) * Math.cos(φ1),
+      Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2),
+    );
+  return [(λ2 * 180) / Math.PI, (φ2 * 180) / Math.PI];
 }

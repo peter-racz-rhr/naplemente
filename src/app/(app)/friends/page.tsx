@@ -4,6 +4,8 @@ import { Search, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Avatar } from "@/components/avatar";
+import { Feed } from "@/components/feed";
+import { LiquidSegmented } from "@/components/ui/liquid-segmented";
 import { FORWARD, PageTransition } from "@/components/page-transition";
 import { PEOPLE } from "@/lib/demo-people";
 import { addFriend, useChats, useFriendIds } from "@/lib/social";
@@ -17,6 +19,7 @@ const timeAgo = (iso: string) => {
 };
 
 export default function FriendsPage() {
+  const [tab, setTab] = useState("feed");
   const [query, setQuery] = useState("");
   const friendIds = useFriendIds();
   const chats = useChats();
@@ -42,6 +45,23 @@ export default function FriendsPage() {
           Friends
         </h1>
 
+        <LiquidSegmented
+          label="Show"
+          className="mt-5 w-full"
+          value={tab}
+          onValueChange={setTab}
+          options={[
+            { value: "feed", label: "Feed" },
+            { value: "chats", label: "Chats" },
+          ]}
+        />
+
+        {tab === "feed" ? (
+          <div key="feed" className="mt-6 pb-6 animate-in fade-in">
+            <Feed />
+          </div>
+        ) : (
+        <div key="chats" className="animate-in fade-in">
         <label className="relative mt-5 block">
           <span className="sr-only">Search people</span>
           <Search
@@ -128,6 +148,8 @@ export default function FriendsPage() {
               ))}
             </ul>
           </section>
+        )}
+        </div>
         )}
       </main>
     </PageTransition>
