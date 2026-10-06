@@ -104,15 +104,24 @@ export default function MapPage() {
     });
   }, [here.coords]);
 
-  // The dock steps aside while the save sheet is open.
+  // While the save sheet is open the dock steps aside, and on Android the
+  // keyboard slides over the sheet instead of pushing it up (VirtualKeyboard
+  // API, Chrome only; other browsers keep their default).
+  const sheetOpen = draft !== null;
   useEffect(() => {
     const root = document.documentElement;
-    if (draft) root.dataset.sheet = "open";
-    else delete root.dataset.sheet;
+    const keyboard = (navigator as Navigator & {
+      virtualKeyboard?: { overlaysContent: boolean };
+    }).virtualKeyboard;
+    if (sheetOpen) {
+      root.dataset.sheet = "open";
+      if (keyboard) keyboard.overlaysContent = true;
+    }
     return () => {
       delete root.dataset.sheet;
+      if (keyboard) keyboard.overlaysContent = false;
     };
-  }, [draft]);
+  }, [sheetOpen]);
 
   // Preview URLs are freed when a file is removed, the sheet closes, or we leave.
   const filesRef = useRef(files);
