@@ -24,7 +24,7 @@ export default function NotificationsPage() {
 
   const finish = () => {
     markOnboarded();
-    router.replace("/home", { transitionTypes: FORWARD });
+    router.replace("/map", { transitionTypes: FORWARD });
   };
 
   const ask = async () => {

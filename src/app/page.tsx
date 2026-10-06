@@ -11,7 +11,7 @@ export default function SplashPage() {
 
   useEffect(() => {
     void import("@/components/ui/3d-globe");
-    const target = hasOnboarded() ? "/home" : "/welcome";
+    const target = hasOnboarded() ? "/map" : "/welcome";
     router.prefetch(target);
     const timer = window.setTimeout(() => router.replace(target), 1400);
     return () => window.clearTimeout(timer);

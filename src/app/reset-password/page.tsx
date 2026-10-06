@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
     setError(null);
     const result = await updatePassword(password);
     setSaving(false);
-    if (result.status === "signed-in") router.replace("/home", { transitionTypes: FORWARD });
+    if (result.status === "signed-in") router.replace("/map", { transitionTypes: FORWARD });
     if (result.status === "error") setError(result.message);
   };
 

@@ -8,6 +8,7 @@ import { ActionButton, ActionLink } from "@/components/onboarding/action-button"
 import { Field } from "@/components/onboarding/field";
 import { Screen } from "@/components/onboarding/screen";
 import { AFTER_AUTH_PATH, signUpWithEmail } from "@/lib/auth";
+import { setDisplayName } from "@/lib/profile";
 import { FORWARD } from "@/components/page-transition";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,6 +48,7 @@ export default function EmailSignupPage() {
 
     setSubmitting(true);
     setFormError(null);
+    setDisplayName(name.trim());
     const result = await signUpWithEmail({
       name: name.trim(),
       email: email.trim(),

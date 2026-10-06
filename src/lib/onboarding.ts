@@ -21,3 +21,11 @@ export const hasOnboarded = () => read(ONBOARDED_KEY) === "1";
 export const markOnboarded = () => write(ONBOARDED_KEY, "1");
 export const hasAcceptedTerms = () => read(TERMS_KEY) === "1";
 export const markTermsAccepted = () => write(TERMS_KEY, "1");
+
+export function resetOnboarding() {
+  try {
+    window.localStorage.removeItem(ONBOARDED_KEY);
+  } catch {
+    // Nothing stored to clear.
+  }
+}
