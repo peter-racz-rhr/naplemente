@@ -40,3 +40,27 @@ export const formatClock = (date: Date) =>
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+
+/** Headline and detail line for "how long until sunset here". */
+export function describeSunset(
+  coords: { latitude: number; longitude: number },
+  now = new Date(),
+) {
+  const next = nextSunset(coords.latitude, coords.longitude, now);
+  if (next.kind === "none") {
+    return {
+      headline: "No sunset here today",
+      detail: "The sun stays above or below the horizon all day where you are.",
+    };
+  }
+  const countdown = formatCountdown(next.at.getTime() - now.getTime());
+  return next.isToday
+    ? {
+        headline: `Sunset in ${countdown}`,
+        detail: `Today at ${formatClock(next.at)}, where you are.`,
+      }
+    : {
+        headline: `Next sunset in ${countdown}`,
+        detail: `Tomorrow at ${formatClock(next.at)}, where you are.`,
+      };
+}

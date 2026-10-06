@@ -9,7 +9,7 @@ import { SunsetGlobe } from "@/components/sunset-globe";
 import { Wordmark } from "@/components/wordmark";
 import { locationPermission, requestLocation, type Coordinates } from "@/lib/location";
 import { hasAcceptedTerms, markTermsAccepted } from "@/lib/onboarding";
-import { formatClock, formatCountdown, nextSunset } from "@/lib/sun";
+import { describeSunset } from "@/lib/sun";
 import { cn } from "@/lib/utils";
 
 /*
@@ -84,7 +84,7 @@ export default function WelcomePage() {
   };
 
   const showAccount = stage.kind === "sunset" || stage.kind === "welcome";
-  const sunset = stage.kind === "sunset" ? sunsetCopy(stage.coords, now) : null;
+  const sunset = stage.kind === "sunset" ? describeSunset(stage.coords, now) : null;
 
   return (
     <PageTransition>
@@ -223,26 +223,6 @@ export default function WelcomePage() {
       </main>
     </PageTransition>
   );
-}
-
-function sunsetCopy(coords: Coordinates, now: Date) {
-  const next = nextSunset(coords.latitude, coords.longitude, now);
-  if (next.kind === "none") {
-    return {
-      headline: "No sunset here today",
-      detail: "The sun stays above or below the horizon all day where you are.",
-    };
-  }
-  const countdown = formatCountdown(next.at.getTime() - now.getTime());
-  return next.isToday
-    ? {
-        headline: `Sunset in ${countdown}`,
-        detail: `Today at ${formatClock(next.at)}, where you are.`,
-      }
-    : {
-        headline: `Next sunset in ${countdown}`,
-        detail: `Tomorrow at ${formatClock(next.at)}, where you are.`,
-      };
 }
 
 /** Fades content up into place when it first appears. */

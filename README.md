@@ -15,12 +15,19 @@ Next.js, Tailwind, shadcn/ui and Supabase.
 | `/login` | Apple, Google, or email and password |
 | `/permissions/location` | Why we ask, then the real sunset time where you are |
 | `/permissions/notifications` | Sunset reminders (with Home Screen hint on iPhone) |
-| `/home` | Placeholder until spots, map and navigation are built |
+| `/home` | Tonight's sunset countdown and a swipeable carousel of sunsets (with the bottom dock) |
+| `/map`, `/add`, `/profile` | The other dock tabs, placeholders for now |
 
 The globe is Aceternity's `3d-globe` (`src/components/ui/3d-globe.tsx`),
 extended with a day/night shader: the sun is fixed relative to the camera,
 so the glowing line where the sun is setting always stays in view while the
 Earth turns. Textures are served locally from `public/textures`.
+
+## Credits
+
+- 3D globe and floating dock: [Aceternity UI](https://ui.aceternity.com)
+- Card swipe carousel: [Skiper UI](https://skiper-ui.com) (free tier, attribution required)
+- Earth textures: NASA Blue Marble and Black Marble, via three-globe
 
 ## Run it
 
