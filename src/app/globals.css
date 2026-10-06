@@ -93,7 +93,18 @@
     @apply text-foreground!;
   }
   .maplibregl-ctrl-attrib-button {
-    @apply bg-transparent! dark:invert;
+    @apply bg-transparent!;
+    /* MapLibre draws a dark "i"; flip it to light for our dark map. */
+    filter: invert(1);
+    opacity: 0.55;
+  }
+  .maplibregl-ctrl-attrib.maplibregl-compact {
+    @apply bg-night/60! border-dusk-edge! shadow-none!;
+  }
+  /* Keep the map credits out from under the dock: top right, small. */
+  .maplibregl-ctrl-bottom-right {
+    top: max(env(safe-area-inset-top), 0.5rem);
+    bottom: auto !important;
   }
 }
 

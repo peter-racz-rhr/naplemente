@@ -34,15 +34,16 @@ export function AppDock() {
     <div
       className="app-dock pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-[translate,opacity,visibility] duration-300 ease-out"
     >
-      <div className="relative">
+      {/* Fills the screen width with a margin, up to a comfortable maximum */}
+      <div className="relative w-[min(calc(100vw-2.5rem),26rem)]">
         {/* Pages can put a control here (the map's center-on-me button):
             it sits just above the dock, lined up with its right edge. */}
         <div id="dock-accessory" className="pointer-events-auto absolute right-0 bottom-full mb-3" />
-        <LiquidSurface radius={999} className="pointer-events-auto">
+        <LiquidSurface radius={999} className="pointer-events-auto w-full">
           <FloatingDock
             items={items}
             activeHref={pathname}
-            className="border-transparent bg-transparent backdrop-blur-none"
+            className="w-full border-transparent bg-transparent backdrop-blur-none"
           />
         </LiquidSurface>
       </div>

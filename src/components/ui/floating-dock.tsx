@@ -47,7 +47,7 @@ export const FloatingDock = ({
       onPointerUp={release}
       onPointerCancel={release}
       className={cn(
-        "mx-auto flex h-[4.5rem] touch-none items-end gap-4 rounded-full border border-dusk-edge bg-dusk/85 px-4 pb-3 backdrop-blur-xl",
+        "mx-auto flex h-[4.5rem] touch-none items-end justify-around gap-4 rounded-full border border-dusk-edge bg-dusk/85 px-5 pb-3 backdrop-blur-xl",
         className,
       )}
     >
