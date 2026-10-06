@@ -15,7 +15,7 @@ Next.js, Tailwind, shadcn/ui and Supabase.
 | `/login` | Apple, Google, or email and password |
 | `/permissions/location` | Why we ask, then the real sunset time where you are |
 | `/permissions/notifications` | Sunset reminders (with Home Screen hint on iPhone) |
-| `/map` | Main tab. Dark map with your spots and friends' spots, and a glowing line pointing to where the sun sets tonight from where you are; tap anywhere to save a spot there, with photos and videos |
+| `/map` | Main tab. Dark map with your spots and friends' spots, and a soft fan of light from where you are toward the sun, showing where the light comes from and how strong it is; tap anywhere to save a spot there, with photos and videos |
 | `/sunset` | Countdown, golden and blue hour, tonight's sunset rating and a 5-day forecast (Open-Meteo), friends' sunset photos |
 | `/friends`, `/friends/[id]` | Feed of friends' sunsets (likes, comments) and Chats: search people, add friends, demo chat with typed replies |
 | `/spots/[id]` | Spot page: photos, sunset countdown and direction, mini map, forecast for that spot, Directions and Share |

@@ -84,7 +84,7 @@ export default function SpotPage() {
       attributionControl={false}
       className="h-full w-full"
     >
-      <SunsetDirection latitude={spot.latitude} longitude={spot.longitude} lengthPx={110} id="spot-direction" />
+      <SunsetDirection latitude={spot.latitude} longitude={spot.longitude} lengthPx={110} />
       <MapMarker latitude={spot.latitude} longitude={spot.longitude}>
         <MarkerContent className="cursor-default">
           <span className="sun-mark block size-7 rounded-full ring-2 ring-night" />

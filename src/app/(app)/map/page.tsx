@@ -294,7 +294,7 @@ export default function MapPage() {
             </MapMarker>
           ))}
 
-          {/* Where the sun goes down tonight, from where you are */}
+          {/* Where the sunlight comes from, and how strong it is */}
           {here.coords && <SunsetDirection {...here.coords} />}
 
           {here.coords && (

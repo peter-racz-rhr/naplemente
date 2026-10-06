@@ -261,3 +261,8 @@ html[data-sheet="open"] .app-dock {
   translate: 0 140%;
   opacity: 0;
 }
+
+/* The sunlight fan on the map is decoration: taps go through to the map. */
+.maplibregl-marker.sun-light {
+  pointer-events: none;
+}
