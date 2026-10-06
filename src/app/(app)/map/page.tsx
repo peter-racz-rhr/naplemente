@@ -104,6 +104,16 @@ export default function MapPage() {
     });
   }, [here.coords]);
 
+  // The dock steps aside while the save sheet is open.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (draft) root.dataset.sheet = "open";
+    else delete root.dataset.sheet;
+    return () => {
+      delete root.dataset.sheet;
+    };
+  }, [draft]);
+
   // Preview URLs are freed when a file is removed, the sheet closes, or we leave.
   const filesRef = useRef(files);
   useEffect(() => {
@@ -144,7 +154,12 @@ export default function MapPage() {
       setError(null);
     }
     setDraft(next);
-    mapRef.current?.easeTo({ center: [next.longitude, next.latitude], duration: 500 });
+    // Keep the pin in view above the sheet.
+    mapRef.current?.easeTo({
+      center: [next.longitude, next.latitude],
+      offset: [0, -150],
+      duration: 500,
+    });
   };
 
   const pickFiles = (list: FileList | null) => {
@@ -182,8 +197,6 @@ export default function MapPage() {
       setBusy(false);
     }
   };
-
-  const bottomOffset = "bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6rem)]";
 
   return (
     <PageTransition>
@@ -270,38 +283,26 @@ export default function MapPage() {
           )}
         </Map>
 
-        {/* Top bar */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-4 pt-[max(env(safe-area-inset-top),0.75rem)]">
-          <LiquidSurface radius={999} veil={0.45} className="pointer-events-auto px-4 py-2.5 text-[0.9375rem] [text-shadow:0_1px_8px_rgb(0_0_0/0.55)]">
-            {draft
-              ? "Tap somewhere else to move the pin"
-              : spots.length === 0
-                ? "Tap the map to save a spot"
-                : `${spots.length} saved ${spots.length === 1 ? "spot" : "spots"} · tap to add`}
-          </LiquidSurface>
-          <LiquidIconButton
-            label="Show where I am"
-            shape="circle"
-            size="lg"
-            onClick={locate}
-            className="pointer-events-auto shrink-0"
-          >
-            <LocateFixed className={cn("size-5", here.status === "locating" && "animate-pulse")} />
-          </LiquidIconButton>
-        </div>
+        {/* Center on me: bottom right, just above the dock */}
+        {!draft && (
+          <div className="absolute right-4 bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6rem)] z-20 animate-in fade-in">
+            <LiquidIconButton label="Show where I am" shape="circle" size="lg" onClick={locate}>
+              <LocateFixed className={cn("size-5", here.status === "locating" && "animate-pulse")} />
+            </LiquidIconButton>
+          </div>
+        )}
 
         {justSaved && (
-          <LiquidSurface
-            radius={999}
-            veil={0.45}
-            role="status"
-            className={cn(
-              "absolute inset-x-10 z-20 px-4 py-3 text-center animate-in fade-in slide-in-from-bottom-2",
-              bottomOffset,
-            )}
-          >
-            Saved {justSaved}
-          </LiquidSurface>
+          <div className="absolute inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] z-20 flex justify-center px-6">
+            <LiquidSurface
+              radius={999}
+              veil={0.45}
+              role="status"
+              className="px-5 py-3 text-center [text-shadow:0_1px_8px_rgb(0_0_0/0.55)] animate-in fade-in slide-in-from-top-2"
+            >
+              Saved {justSaved}
+            </LiquidSurface>
+          </div>
         )}
 
         {/* Save sheet */}
@@ -309,11 +310,9 @@ export default function MapPage() {
           <form
             noValidate
             onSubmit={submit}
-            className={cn(
-              "absolute inset-x-3 z-20 rounded-[1.75rem] border border-dusk-edge bg-dusk p-5 animate-in fade-in slide-in-from-bottom-6 duration-300",
-              bottomOffset,
-            )}
+            className="absolute inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-[1.75rem] border-t border-dusk-edge bg-dusk px-5 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] animate-in slide-in-from-bottom duration-300 ease-out"
           >
+            <div aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-dusk-edge" />
             <div className="flex items-center justify-between">
               <h2 className="t-section">Save this spot</h2>
               <button

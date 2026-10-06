@@ -28,7 +28,7 @@ export function AppDock() {
   return (
     <div
       style={{ viewTransitionName: "app-dock" }}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)]"
+      className="app-dock pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-[translate,opacity] duration-300 ease-out"
     >
       <LiquidSurface radius={999} className="pointer-events-auto">
         <FloatingDock

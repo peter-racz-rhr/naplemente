@@ -108,9 +108,18 @@ function IconContainer({
         className={cn(
           "relative flex aspect-square items-center justify-center rounded-full transition-colors",
           // Outline icons straight on the glass; the current tab gets a soft lit disc.
-          active ? "bg-white/14 text-ink" : "text-ink/65",
+          active ? "text-ink" : "text-ink/65",
         )}
       >
+        {/* One shared disc that glides to whichever tab is current. */}
+        {active && (
+          <motion.span
+            layoutId="dock-active-disc"
+            aria-hidden
+            className="absolute inset-0 rounded-full bg-white/14"
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          />
+        )}
         <AnimatePresence>
           {pressed && (
             <motion.div
@@ -125,7 +134,7 @@ function IconContainer({
         </AnimatePresence>
         <motion.div
           style={{ width: iconSize, height: iconSize }}
-          className="flex items-center justify-center [&_svg]:size-full"
+          className="relative flex items-center justify-center [&_svg]:size-full"
         >
           {icon}
         </motion.div>

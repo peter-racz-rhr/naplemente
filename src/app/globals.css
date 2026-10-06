@@ -255,3 +255,9 @@
 ::view-transition-new(app-dock) {
   animation: none;
 }
+
+/* Sheets that need the bottom of the screen (saving a spot) tuck the dock away. */
+html[data-sheet="open"] .app-dock {
+  translate: 0 140%;
+  opacity: 0;
+}
