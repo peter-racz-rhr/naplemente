@@ -5,9 +5,8 @@ import { ChevronRight, ImagePlus, LocateFixed, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
-import { SpotSunsetTick, SunsetDirection } from "@/components/sunset-direction";
+import { SunsetDirection } from "@/components/sunset-direction";
 import { Field } from "@/components/onboarding/field";
 import { FORWARD, PageTransition } from "@/components/page-transition";
 import { LiquidIconButton } from "@/components/ui/liquid-icon-button";
@@ -254,18 +253,20 @@ export default function MapPage() {
         >
           <TapToSave onTap={startDraft} />
 
-          {/* Friends' sunset lines first, so their avatars sit on top */}
-          {friends.map((person) => (
-            <SpotSunsetTick key={`tick-${person.id}`} {...person.spot} />
-          ))}
           {friends.map((person) => (
             <MapMarker key={person.id} latitude={person.spot.latitude} longitude={person.spot.longitude}>
+              {/* Friends' spots: a small dot in that friend's colors */}
               <MarkerContent>
-                <Avatar
-                  name={person.name}
-                  colors={person.colors}
-                  className="size-8 text-[0.6875rem] ring-2 ring-night"
-                />
+                <span
+                  role="button"
+                  aria-label={`Open ${person.spot.name}, saved by ${person.name}`}
+                  className="grid size-8 place-items-center"
+                >
+                  <span
+                    className="block size-2.5 rounded-full shadow-[0_0_0_2px_#000,0_0_10px_2px_rgba(255,255,255,0.25)]"
+                    style={{ background: `radial-gradient(circle at 40% 35%, ${person.colors[0]}, ${person.colors[1]})` }}
+                  />
+                </span>
               </MarkerContent>
               <MarkerPopup className="w-60 rounded-[1.25rem] border-dusk-edge p-4">
                 <p className="font-semibold">{person.spot.name}</p>
@@ -360,21 +361,31 @@ export default function MapPage() {
           <form
             noValidate
             onSubmit={submit}
-            className="absolute inset-x-0 bottom-0 z-30 mx-auto max-w-md rounded-t-[1.75rem] border-t border-dusk-edge bg-dusk px-5 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] animate-in slide-in-from-bottom duration-300 ease-out"
+            // Fixed to the visible screen (the map itself is sized to the
+            // large viewport for the keyboard), and scrollable if it's tall.
+            className="fixed inset-x-0 bottom-0 z-30 mx-auto max-h-[85dvh] max-w-md overflow-y-auto overscroll-contain rounded-t-[1.75rem] border-t border-dusk-edge bg-dusk px-5 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] animate-in slide-in-from-bottom duration-300 ease-out"
           >
             <div aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-dusk-edge" />
-            <div className="flex items-center justify-between">
-              <h2 className="t-section">Save this spot</h2>
+            {/* Save sits up top so it stays reachable above the keyboard. */}
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={closeSheet}
                 aria-label="Cancel"
-                className="-mr-2 grid size-10 place-items-center rounded-full text-haze hover:text-ink"
+                className="-ml-2 grid size-10 shrink-0 place-items-center rounded-full text-haze hover:text-ink"
               >
                 <X className="size-5" />
               </button>
+              <h2 className="t-section min-w-0 flex-1 truncate">Save this spot</h2>
+              <button
+                type="submit"
+                disabled={busy}
+                className="h-10 shrink-0 rounded-full bg-ink px-5 text-[0.9375rem] font-semibold text-night transition-transform active:scale-[0.97] disabled:opacity-60"
+              >
+                {busy ? "Saving…" : "Save"}
+              </button>
             </div>
-            <p className="mt-1 text-sm text-gold">
+            <p className="mt-1 pl-8 text-sm text-gold">
               <SunsetLine {...draft} />
             </p>
 
@@ -441,14 +452,6 @@ export default function MapPage() {
                   {error}
                 </p>
               )}
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="h-14 rounded-full bg-ink text-[1.0625rem] font-semibold text-night transition-transform active:scale-[0.97] disabled:opacity-60"
-              >
-                {busy ? "Saving…" : "Save spot"}
-              </button>
             </div>
           </form>
         )}
