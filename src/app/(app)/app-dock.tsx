@@ -26,8 +26,9 @@ export function AppDock() {
   }));
 
   return (
+    // No view-transition-name here: it would make this wrapper a backdrop
+    // root and the liquid glass could no longer see (and bend) the page.
     <div
-      style={{ viewTransitionName: "app-dock" }}
       className="app-dock pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-[translate,opacity] duration-300 ease-out"
     >
       <LiquidSurface radius={999} className="pointer-events-auto">

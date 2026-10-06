@@ -244,15 +244,15 @@
   }
 }
 
-/* The dock stays put while tab content slides underneath it. */
-::view-transition-group(app-dock) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-old(app-dock) {
+/*
+  During page transitions only the pages animate. Everything else (the dock)
+  is shown live instead of cross-fading two snapshots, so it stays still and
+  its active disc keeps sliding.
+*/
+::view-transition-old(root) {
   display: none;
 }
-::view-transition-new(app-dock) {
+::view-transition-new(root) {
   animation: none;
 }
 
