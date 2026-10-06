@@ -38,7 +38,7 @@ export default function FriendsPage() {
   return (
     <PageTransition>
       <main className="mx-auto w-full max-w-md px-6 pt-[max(env(safe-area-inset-top),1rem)]">
-        <h1 className="pt-6 text-[2.25rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+        <h1 className="pt-6 t-title">
           Friends
         </h1>
 
@@ -103,7 +103,7 @@ export default function FriendsPage() {
           <section aria-labelledby="people-heading" className="mt-8">
             <h2
               id="people-heading"
-              className="text-[1.25rem] font-semibold tracking-[-0.02em]"
+              className="t-section"
             >
               People you may know
             </h2>

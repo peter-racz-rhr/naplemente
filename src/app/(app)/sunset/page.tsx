@@ -63,7 +63,7 @@ export default function SunsetPage() {
     alt: s.alt,
     caption: (
       <>
-        <p className="text-[1.25rem] leading-tight font-semibold tracking-[-0.02em] text-white">
+        <p className="t-section text-white">
           {s.title}
         </p>
         <p className="mt-0.5 text-sm text-white/75">{s.note}</p>
@@ -79,14 +79,14 @@ export default function SunsetPage() {
         <section className="pt-6">
           {sunset ? (
             <>
-              <h1 className="text-[2.75rem] leading-[1.02] font-semibold tracking-[-0.04em] text-balance">
+              <h1 className="t-display">
                 {sunset.headline}
               </h1>
               <p className="mt-2 text-[1.0625rem] text-haze">{sunset.detail}</p>
             </>
           ) : (
             <>
-              <h1 className="text-[2.25rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance">
+              <h1 className="t-title">
                 When does the sun set where you are?
               </h1>
               <p className="mt-2 text-[1.0625rem] text-haze">
@@ -117,7 +117,7 @@ export default function SunsetPage() {
             ].map(([label, time]) => (
               <div key={label as string}>
                 <dt className="text-[0.8125rem] text-haze">{label as string}</dt>
-                <dd className="mt-1 text-[1.25rem] font-semibold tracking-[-0.02em]">
+                <dd className="mt-1 t-section">
                   {formatClock(time as Date)}
                 </dd>
               </div>
@@ -128,7 +128,7 @@ export default function SunsetPage() {
         {/* Tonight's forecast */}
         {here.coords && (
           <section className="mt-8" aria-labelledby="forecast-heading">
-            <h2 id="forecast-heading" className="text-[1.25rem] font-semibold tracking-[-0.02em]">
+            <h2 id="forecast-heading" className="t-section">
               Sunset forecast
             </h2>
 
@@ -189,7 +189,7 @@ export default function SunsetPage() {
 
         {/* Friends' sunsets */}
         <section className="mt-10" aria-labelledby="saved-heading">
-          <h2 id="saved-heading" className="text-[1.25rem] font-semibold tracking-[-0.02em]">
+          <h2 id="saved-heading" className="t-section">
             Sunsets your friends saved
           </h2>
           <p className="mt-1 text-[0.9375rem] text-haze">Swipe through the cards.</p>

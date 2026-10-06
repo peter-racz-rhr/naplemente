@@ -56,7 +56,7 @@
   --color-rose: var(--rose);
   --color-ok: var(--ok);
   --color-error: var(--error);
-  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui,
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui,
     sans-serif;
   --font-heading: var(--font-sans);
   --radius-lg: var(--radius);
@@ -94,6 +94,43 @@
   }
   .maplibregl-ctrl-attrib-button {
     @apply bg-transparent! dark:invert;
+  }
+}
+
+/*
+  Type scale. One family (Instrument Sans); headings use its narrower
+  widths for character, body text stays at normal width.
+*/
+@layer components {
+  .t-display {
+    font-size: 2.75rem;
+    line-height: 1.02;
+    font-weight: 600;
+    font-stretch: 90%;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .t-title {
+    font-size: 2.125rem;
+    line-height: 1.05;
+    font-weight: 600;
+    font-stretch: 92%;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .t-card-title {
+    font-size: 1.625rem;
+    line-height: 1.1;
+    font-weight: 600;
+    font-stretch: 94%;
+    letter-spacing: -0.02em;
+  }
+  .t-section {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    font-weight: 600;
+    font-stretch: 95%;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -197,4 +234,24 @@
   .lq-button {
     border-radius: calc(var(--lq-button-radius) + var(--lq-squish) * 5px);
   }
+}
+
+/* Liquid glass: a slightly thicker rim than Liquefy's 1.6px default. */
+@layer components {
+  .lq-surface,
+  .lq-button {
+    --lq-rim-width: 2.4px;
+  }
+}
+
+/* The dock stays put while tab content slides underneath it. */
+::view-transition-group(app-dock) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(app-dock) {
+  display: none;
+}
+::view-transition-new(app-dock) {
+  animation: none;
 }

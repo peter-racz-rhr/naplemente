@@ -89,7 +89,7 @@ function LoginCard() {
       <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-night text-ink">
         <LogIn aria-hidden className="size-6" />
       </div>
-      <h1 className="text-center text-[1.75rem] leading-tight font-semibold tracking-[-0.03em]">
+      <h1 className="text-center t-card-title">
         Log in with email
       </h1>
       <p className="mt-2 text-center text-[1rem] leading-snug text-haze">

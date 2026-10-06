@@ -1,6 +1,7 @@
 "use client";
 
 import { createLocalStore } from "./local-store";
+import { deleteMedia, type MediaRef } from "./media-store";
 
 export type Spot = {
   id: string;
@@ -9,6 +10,7 @@ export type Spot = {
   latitude: number;
   longitude: number;
   savedAt: string;
+  media?: MediaRef[];
 };
 
 const store = createLocalStore<Spot[]>("naplemente:spots", []);
@@ -26,5 +28,7 @@ export function saveSpot(input: Omit<Spot, "id" | "savedAt">) {
 }
 
 export function removeSpot(id: string) {
-  store.set((spots) => spots.filter((spot) => spot.id !== id));
+  const spot = store.get().find((s) => s.id === id);
+  spot?.media?.forEach((m) => void deleteMedia(m.id));
+  store.set((spots) => spots.filter((s) => s.id !== id));
 }

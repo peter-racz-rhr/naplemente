@@ -122,7 +122,7 @@ export default function WelcomePage() {
               stage.kind === "asking" ||
               stage.kind === "locating") && (
               <Reveal key="ask">
-                <h1 className="text-[2.25rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance">
+                <h1 className="t-title">
                   When does the sun set where you are?
                 </h1>
                 <p className="mt-3 max-w-[32ch] text-[1.0625rem] leading-snug text-haze">
@@ -155,7 +155,7 @@ export default function WelcomePage() {
 
             {sunset && (
               <Reveal key="sunset">
-                <h1 className="text-[2.75rem] leading-[1.02] font-semibold tracking-[-0.04em] text-balance">
+                <h1 className="t-display">
                   {sunset.headline}
                 </h1>
                 <p className="mt-3 text-[1.0625rem] leading-snug text-haze">
@@ -166,7 +166,7 @@ export default function WelcomePage() {
 
             {stage.kind === "welcome" && (
               <Reveal key="welcome">
-                <h1 className="text-[2.25rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+                <h1 className="t-title">
                   Welcome to Naplemente
                 </h1>
                 <p className="mt-3 max-w-[32ch] text-[1.0625rem] leading-snug text-haze">

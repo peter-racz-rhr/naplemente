@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
     <Screen>
       <form noValidate onSubmit={submit} className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col justify-center">
-          <h1 className="text-[2.125rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+          <h1 className="t-title">
             Choose a new password
           </h1>
           <Field

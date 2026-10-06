@@ -15,12 +15,13 @@ Next.js, Tailwind, shadcn/ui and Supabase.
 | `/login` | Apple, Google, or email and password |
 | `/permissions/location` | Why we ask, then the real sunset time where you are |
 | `/permissions/notifications` | Sunset reminders (with Home Screen hint on iPhone) |
-| `/map` | Main tab. Dark map with your spots and friends' spots; Save a spot drops a pin at the center |
+| `/map` | Main tab. Dark map with your spots and friends' spots; tap anywhere to save a spot there, with photos and videos |
 | `/sunset` | Countdown, golden and blue hour, tonight's sunset rating and a 5-day forecast (Open-Meteo), friends' sunset photos |
 | `/friends`, `/friends/[id]` | Search people, add friends, demo chat with typed replies |
 | `/profile` | Name, stats, saved spots, log out, credits |
 
-Spots, friends and messages are stored on the device (localStorage) until
+Spots, friends and messages are stored on the device (localStorage, and
+IndexedDB for photos and videos) until
 Supabase tables replace them. The people and replies in the Friends tab are
 made up for the demo (`src/lib/demo-people.ts`).
 
@@ -68,7 +69,8 @@ locally so the flow can be clicked through.
 
 - True black background; warm color appears only on the globe's sunset line
   and the few moments that point at it.
-- One typeface: Bricolage Grotesque (bundled via Fontsource, no Google Fonts
-  request).
+- One typeface: Instrument Sans (bundled via Fontsource). Headings use its
+  narrower widths (`t-display`, `t-title`, `t-card-title`, `t-section` in
+  globals.css); body text stays at normal width.
 - Sentence case everywhere, no uppercase labels.
 - Motion is one orchestrated intro; `prefers-reduced-motion` turns it off.

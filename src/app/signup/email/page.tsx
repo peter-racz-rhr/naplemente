@@ -66,7 +66,7 @@ export default function EmailSignupPage() {
       <Screen>
         <div className="flex flex-1 flex-col justify-center gap-4">
           <MailCheck aria-hidden className="size-10 text-gold" />
-          <h1 className="text-[2.125rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+          <h1 className="t-title">
             Check your inbox
           </h1>
           <p className="text-[1.0625rem] leading-snug text-haze">
@@ -93,7 +93,7 @@ export default function EmailSignupPage() {
       }
     >
       <form noValidate onSubmit={submit} className="flex flex-1 flex-col">
-        <h1 className="mt-6 text-[2.125rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+        <h1 className="mt-6 t-title">
           Sign up with email
         </h1>
 

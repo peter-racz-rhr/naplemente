@@ -3,6 +3,7 @@
 import { LogOut, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/avatar";
+import { MediaThumb } from "@/components/media-thumb";
 import { BACK, PageTransition } from "@/components/page-transition";
 import { getSupabase } from "@/lib/supabase/client";
 import { resetOnboarding } from "@/lib/onboarding";
@@ -29,24 +30,24 @@ export default function ProfilePage() {
       <main className="mx-auto w-full max-w-md px-6 pt-[max(env(safe-area-inset-top),1rem)]">
         <div className="flex flex-col items-center pt-8 text-center">
           <Avatar name={name} colors={["#ffb54d", "#f0648c"]} className="size-24 text-[1.75rem]" />
-          <h1 className="mt-4 text-[2rem] leading-tight font-semibold tracking-[-0.03em]">
+          <h1 className="mt-4 t-title">
             {name}
           </h1>
         </div>
 
         <dl className="mt-8 grid grid-cols-2 gap-2">
           <div className="rounded-[1.5rem] bg-dusk p-4 text-center">
-            <dd className="text-[1.75rem] font-semibold tracking-[-0.03em]">{spots.length}</dd>
+            <dd className="t-card-title tabular-nums">{spots.length}</dd>
             <dt className="text-sm text-haze">Saved spots</dt>
           </div>
           <div className="rounded-[1.5rem] bg-dusk p-4 text-center">
-            <dd className="text-[1.75rem] font-semibold tracking-[-0.03em]">{friendIds.length}</dd>
+            <dd className="t-card-title tabular-nums">{friendIds.length}</dd>
             <dt className="text-sm text-haze">Friends</dt>
           </div>
         </dl>
 
         <section className="mt-8" aria-labelledby="spots-heading">
-          <h2 id="spots-heading" className="text-[1.25rem] font-semibold tracking-[-0.02em]">
+          <h2 id="spots-heading" className="t-section">
             Your spots
           </h2>
           {spots.length === 0 ? (
@@ -57,7 +58,13 @@ export default function ProfilePage() {
             <ul className="mt-2 divide-y divide-dusk-edge">
               {spots.map((spot) => (
                 <li key={spot.id} className="flex items-center gap-3 py-3.5">
-                  <MapPin className="size-5 shrink-0 text-gold" aria-hidden />
+                  {spot.media?.[0] ? (
+                    <MediaThumb media={spot.media[0]} className="size-12 shrink-0 rounded-xl" />
+                  ) : (
+                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-dusk">
+                      <MapPin className="size-5 text-gold" aria-hidden />
+                    </span>
+                  )}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold">{spot.name}</span>
                     {spot.note && (

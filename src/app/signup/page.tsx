@@ -9,7 +9,7 @@ export default function SignupPage() {
     <Screen back>
       <div className="flex flex-1 flex-col justify-end gap-8 pb-4">
         <div>
-          <h1 className="text-[2.125rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+          <h1 className="t-title">
             Create an account
           </h1>
           <p className="mt-3 text-[1.0625rem] leading-snug text-haze">

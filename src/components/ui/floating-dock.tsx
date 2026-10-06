@@ -19,7 +19,13 @@ import {
 import Link from "next/link";
 import { useRef, useState } from "react";
 
-export type DockItem = { title: string; icon: React.ReactNode; href: string };
+export type DockItem = {
+  title: string;
+  icon: React.ReactNode;
+  href: string;
+  /** Passed to the link so pages can animate in the right direction. */
+  transitionTypes?: string[];
+};
 
 export const FloatingDock = ({
   items,
@@ -41,7 +47,7 @@ export const FloatingDock = ({
       onPointerUp={release}
       onPointerCancel={release}
       className={cn(
-        "mx-auto flex h-[4.5rem] touch-none items-end gap-3 rounded-[1.75rem] border border-dusk-edge bg-dusk/85 px-3 pb-3 backdrop-blur-xl",
+        "mx-auto flex h-[4.5rem] touch-none items-end gap-4 rounded-full border border-dusk-edge bg-dusk/85 px-4 pb-3 backdrop-blur-xl",
         className,
       )}
     >
@@ -64,6 +70,7 @@ function IconContainer({
   title,
   icon,
   href,
+  transitionTypes,
   active,
 }: DockItem & { pointerX: MotionValue<number>; active: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -87,6 +94,7 @@ function IconContainer({
   return (
     <Link
       href={href}
+      transitionTypes={transitionTypes}
       aria-label={title}
       aria-current={active ? "page" : undefined}
       onPointerEnter={() => setPressed(true)}
@@ -99,7 +107,8 @@ function IconContainer({
         style={{ width: size, height: size }}
         className={cn(
           "relative flex aspect-square items-center justify-center rounded-full transition-colors",
-          active ? "bg-ink text-night" : "bg-night text-ink",
+          // Outline icons straight on the glass; the current tab gets a soft lit disc.
+          active ? "bg-white/14 text-ink" : "text-ink/65",
         )}
       >
         <AnimatePresence>

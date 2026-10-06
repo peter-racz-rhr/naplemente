@@ -3,7 +3,7 @@ import { Screen } from "@/components/onboarding/screen";
 export default function Page() {
   return (
     <Screen back>
-      <h1 className="mt-6 text-[2.125rem] leading-[1.05] font-semibold tracking-[-0.035em]">
+      <h1 className="mt-6 t-title">
         Terms
       </h1>
       <p className="mt-3 text-[1.0625rem] leading-snug text-haze">

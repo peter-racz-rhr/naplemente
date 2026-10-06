@@ -42,7 +42,7 @@ export function PermissionScreen({
         <div className="mb-8 grid size-16 place-items-center rounded-[1.25rem] bg-dusk text-gold">
           {icon}
         </div>
-        <h1 className="text-[2.125rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance">
+        <h1 className="t-title">
           {title}
         </h1>
         <div className="mt-4 text-[1.0625rem] leading-snug text-haze">
