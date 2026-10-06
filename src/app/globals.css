@@ -1,0 +1,89 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+  Naplemente tokens.
+  The screen is true black, like the sky after the sun is gone.
+  Warm color is reserved for the globe's sunset line and the
+  few moments that point at it; everything else stays quiet.
+*/
+:root {
+  --night: #000000;
+  --ink: #f4efe9; /* text, primary button */
+  --haze: #9a938c; /* secondary text */
+  --dusk: #1c1a19; /* fields, secondary surfaces */
+  --dusk-edge: #34302d; /* field borders */
+  --ember: #ff7a3d; /* the sunset line */
+  --gold: #ffb54d;
+  --rose: #f0648c;
+  --ok: #7fd6a4;
+  --error: #ff8a7a;
+
+  --background: var(--night);
+  --foreground: var(--ink);
+  --muted-foreground: var(--haze);
+  --border: var(--dusk-edge);
+  --input: var(--dusk-edge);
+  --ring: var(--gold);
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-night: var(--night);
+  --color-ink: var(--ink);
+  --color-haze: var(--haze);
+  --color-dusk: var(--dusk);
+  --color-dusk-edge: var(--dusk-edge);
+  --color-ember: var(--ember);
+  --color-gold: var(--gold);
+  --color-rose: var(--rose);
+  --color-ok: var(--ok);
+  --color-error: var(--error);
+  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-heading: var(--font-sans);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/60;
+  }
+  html {
+    @apply font-sans;
+    background: var(--night);
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground;
+    overscroll-behavior: none;
+  }
+}
+
+/* The wordmark's sun sits half under the horizon line. */
+.sun-mark {
+  background: radial-gradient(
+    120% 120% at 50% 100%,
+    var(--gold) 0%,
+    var(--ember) 55%,
+    var(--rose) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
