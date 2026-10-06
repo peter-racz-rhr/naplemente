@@ -61,3 +61,23 @@ export async function logInWithEmail(input: {
   if (error) return { status: "error", message: error.message };
   return { status: "signed-in" };
 }
+
+export async function sendPasswordReset(email: string): Promise<AuthResult> {
+  const supabase = getSupabase();
+  if (!supabase) return { status: "check-email" };
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/reset-password")}`,
+  });
+  if (error) return { status: "error", message: error.message };
+  return { status: "check-email" };
+}
+
+export async function updatePassword(password: string): Promise<AuthResult> {
+  const supabase = getSupabase();
+  if (!supabase) return { status: "signed-in" };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { status: "error", message: error.message };
+  return { status: "signed-in" };
+}
