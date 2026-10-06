@@ -104,21 +104,30 @@ export default function MapPage() {
     });
   }, [here.coords]);
 
-  // While the save sheet is open the dock steps aside, and on Android the
-  // keyboard slides over the sheet instead of pushing it up (VirtualKeyboard
-  // API, Chrome only; other browsers keep their default).
+  // While the save sheet is open the dock steps aside, and the keyboard
+  // slides over the sheet instead of pushing it up. Android Chrome reads
+  // this from the viewport meta tag (interactive-widget) and the
+  // VirtualKeyboard API; both are switched back when the sheet closes so
+  // the chat bar still rises above the keyboard.
   const sheetOpen = draft !== null;
   useEffect(() => {
+    if (!sheetOpen) return;
     const root = document.documentElement;
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    const originalViewport = meta?.content;
     const keyboard = (navigator as Navigator & {
       virtualKeyboard?: { overlaysContent: boolean };
     }).virtualKeyboard;
-    if (sheetOpen) {
-      root.dataset.sheet = "open";
-      if (keyboard) keyboard.overlaysContent = true;
+
+    root.dataset.sheet = "open";
+    if (meta && originalViewport && !originalViewport.includes("interactive-widget")) {
+      meta.content = `${originalViewport}, interactive-widget=overlays-content`;
     }
+    if (keyboard) keyboard.overlaysContent = true;
+
     return () => {
       delete root.dataset.sheet;
+      if (meta && originalViewport !== undefined) meta.content = originalViewport;
       if (keyboard) keyboard.overlaysContent = false;
     };
   }, [sheetOpen]);
@@ -209,7 +218,9 @@ export default function MapPage() {
 
   return (
     <PageTransition>
-      <main className="fixed inset-0 bg-night">
+      {/* Sized to the large viewport (lvh), not the visible one, so if the
+          keyboard still shrinks the screen the map and sheet stay where they are. */}
+      <main className="fixed inset-x-0 top-0 h-lvh bg-night">
         <Map
           ref={mapRef}
           theme="dark"
