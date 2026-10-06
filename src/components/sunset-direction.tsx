@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { getPosition } from "suncalc";
 import { MapMarker, MarkerContent } from "@/components/ui/map";
 import { useNow } from "@/lib/use-here";
@@ -169,61 +169,6 @@ export function SpotSunsetTick({
           />
         </span>
       </MarkerContent>
-    </MapMarker>
-  );
-}
-
-/**
- * A saved spot drawn as a single line: it starts exactly at the spot and
- * points to where the sun sets from there. A finger-sized invisible area
- * along it opens the spot's popup (pass a <MarkerPopup> as children); the
- * rest of its box lets taps through to the map.
- */
-export function SpotLineMarker({
-  latitude,
-  longitude,
-  label,
-  lengthPx = 40,
-  children,
-}: {
-  latitude: number;
-  longitude: number;
-  label: string;
-  lengthPx?: number;
-  children?: ReactNode;
-}) {
-  const next = nextSunset(latitude, longitude);
-  // Near the poles there may be no sunset; point north so it still shows.
-  const bearing = next.kind === "sunset" ? sunsetBearing(latitude, longitude, next.at) : 0;
-
-  return (
-    <MapMarker
-      latitude={latitude}
-      longitude={longitude}
-      rotation={bearing}
-      rotationAlignment="map"
-      className="spot-line"
-    >
-      <MarkerContent className="pointer-events-none">
-        <span className="relative block" style={{ width: lengthPx * 2, height: lengthPx * 2 }}>
-          <span
-            aria-hidden
-            className="absolute top-0 left-1/2 w-[3px] -translate-x-1/2 rounded-full shadow-[0_0_8px_rgba(255,140,60,0.6)]"
-            style={{
-              height: lengthPx,
-              background:
-                "linear-gradient(to top, rgb(255 196 110) 0%, rgb(255 150 70) 55%, rgb(255 122 61 / 0) 100%)",
-            }}
-          />
-          <span
-            role="button"
-            aria-label={label}
-            className="pointer-events-auto absolute top-[-6px] left-1/2 w-8 -translate-x-1/2 cursor-pointer"
-            style={{ height: lengthPx + 14 }}
-          />
-        </span>
-      </MarkerContent>
-      {children}
     </MapMarker>
   );
 }

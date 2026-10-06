@@ -267,8 +267,3 @@ html[data-sheet="open"] .app-dock {
 .maplibregl-marker.sun-light {
   pointer-events: none;
 }
-
-/* Spot lines: only the strip along the line takes taps, not the whole box. */
-.maplibregl-marker.spot-line {
-  pointer-events: none;
-}

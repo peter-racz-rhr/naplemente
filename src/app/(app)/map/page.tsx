@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } fro
 import { createPortal } from "react-dom";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
-import { SpotLineMarker, SpotSunsetTick, SunsetDirection } from "@/components/sunset-direction";
+import { SpotSunsetTick, SunsetDirection } from "@/components/sunset-direction";
 import { Field } from "@/components/onboarding/field";
 import { FORWARD, PageTransition } from "@/components/page-transition";
 import { LiquidIconButton } from "@/components/ui/liquid-icon-button";
@@ -279,13 +279,13 @@ export default function MapPage() {
           ))}
 
           {spots.map((spot) => (
-            // Your spots are just a line toward their sunset, no dot.
-            <SpotLineMarker
-              key={spot.id}
-              latitude={spot.latitude}
-              longitude={spot.longitude}
-              label={`Open ${spot.name}`}
-            >
+            <MapMarker key={spot.id} latitude={spot.latitude} longitude={spot.longitude}>
+              {/* Your spots: a small glowing dot, with a finger-sized tap area around it */}
+              <MarkerContent>
+                <span role="button" aria-label={`Open ${spot.name}`} className="grid size-8 place-items-center">
+                  <span className="block size-2.5 rounded-full bg-[radial-gradient(circle_at_40%_35%,#ffe2a8,#ff7a3d)] shadow-[0_0_0_2px_#000,0_0_12px_3px_rgba(255,140,60,0.55)]" />
+                </span>
+              </MarkerContent>
               <MarkerPopup className="w-64 rounded-[1.25rem] border-dusk-edge p-3">
                 {spot.media?.[0] && (
                   <MediaThumb media={spot.media[0]} controls className="mb-3 aspect-[4/3] w-full" />
@@ -306,7 +306,7 @@ export default function MapPage() {
                   <OpenSpotLink href={spotHref(spot.id)} />
                 </div>
               </MarkerPopup>
-            </SpotLineMarker>
+            </MapMarker>
           ))}
 
           {/* Where the sunlight comes from, and how strong it is */}
