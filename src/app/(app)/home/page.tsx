@@ -15,12 +15,10 @@ export default function HomePage() {
     caption: (
       <>
         <p className="text-[1.25rem] leading-tight font-semibold tracking-[-0.02em] text-white">
-          {s.spot}
+          {s.title}
         </p>
-        <p className="mt-0.5 text-sm text-white/75">{s.place}</p>
-        <p className="mt-3 text-[0.6875rem] text-white/55">
-          Photo: {s.photographer} / Unsplash
-        </p>
+        <p className="mt-0.5 text-sm text-white/75">{s.note}</p>
+        <p className="mt-3 text-[0.6875rem] text-white/55">Photo: Unsplash</p>
       </>
     ),
   }));
