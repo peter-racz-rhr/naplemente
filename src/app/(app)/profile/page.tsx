@@ -1,13 +1,13 @@
 "use client";
 
-import { LogOut, MapPin } from "lucide-react";
+import { LogOut, MapPin, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
 import { BACK, FORWARD, PageTransition } from "@/components/page-transition";
 import { getSupabase } from "@/lib/supabase/client";
-import { resetOnboarding } from "@/lib/onboarding";
+import { replayIntro, resetOnboarding } from "@/lib/onboarding";
 import { useDisplayName } from "@/lib/profile";
 import { useFriendIds } from "@/lib/social";
 import { spotHref } from "@/lib/spot-detail";
@@ -20,6 +20,12 @@ export default function ProfilePage() {
   const name = useDisplayName() || "You";
   const spots = useSpots();
   const friendIds = useFriendIds();
+
+  // For trying the app from the very start: your spots and chats stay.
+  const showIntro = () => {
+    replayIntro();
+    router.replace("/", { transitionTypes: BACK });
+  };
 
   const logOut = async () => {
     await getSupabase()?.auth.signOut();
@@ -88,13 +94,37 @@ export default function ProfilePage() {
           )}
         </section>
 
-        <button
-          type="button"
-          onClick={logOut}
-          className="mt-10 inline-flex h-12 items-center gap-2 text-error"
-        >
-          <LogOut className="size-5" aria-hidden /> Log out
-        </button>
+        <section className="mt-10" aria-labelledby="settings-heading">
+          <h2 id="settings-heading" className="t-section">
+            Settings
+          </h2>
+          <ul className="mt-2 divide-y divide-dusk-edge overflow-hidden rounded-[1.5rem] bg-dusk">
+            <li>
+              <button
+                type="button"
+                onClick={showIntro}
+                className="flex w-full items-center gap-3 px-4 py-4 text-left active:bg-dusk-edge/50"
+              >
+                <RotateCcw className="size-5 shrink-0 text-gold" aria-hidden />
+                <span className="flex-1">
+                  <span className="block">Show the intro again</span>
+                  <span className="block text-sm text-haze">
+                    Replays the welcome, sign-up and reminders. Your spots stay.
+                  </span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={logOut}
+                className="flex w-full items-center gap-3 px-4 py-4 text-left text-error active:bg-dusk-edge/50"
+              >
+                <LogOut className="size-5 shrink-0" aria-hidden /> Log out
+              </button>
+            </li>
+          </ul>
+        </section>
 
         <footer className="mt-10 border-t border-dusk-edge pt-5 pb-6 text-[0.8125rem] leading-relaxed text-haze">
           Made with components from Aceternity UI, Skiper UI and mapcn. Map ©

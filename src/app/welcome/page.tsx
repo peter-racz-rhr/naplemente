@@ -8,7 +8,7 @@ import { FORWARD, PageTransition } from "@/components/page-transition";
 import { SunsetGlobe } from "@/components/sunset-globe";
 import { Wordmark } from "@/components/wordmark";
 import { locationPermission, requestLocation, type Coordinates } from "@/lib/location";
-import { hasAcceptedTerms, markTermsAccepted } from "@/lib/onboarding";
+import { hasAcceptedTerms, markTermsAccepted, takeReplayFlag } from "@/lib/onboarding";
 import { describeSunset } from "@/lib/sun";
 import { cn } from "@/lib/utils";
 
@@ -56,8 +56,12 @@ export default function WelcomePage() {
     const skipToAccount =
       new URLSearchParams(window.location.search).get("intro") === "skip";
 
+    // Replaying the intro from Profile shows the location question even if
+    // it was already answered.
+    const replay = takeReplayFlag();
     void locationPermission().then((state) => {
-      if (state === "granted") void locate();
+      if (replay) setStage({ kind: "asking" });
+      else if (state === "granted") void locate();
       else if (state === "denied" || skipToAccount) setStage({ kind: "welcome" });
       else setStage({ kind: "asking" });
     });

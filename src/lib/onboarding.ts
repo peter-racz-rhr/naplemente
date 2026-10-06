@@ -29,3 +29,27 @@ export function resetOnboarding() {
     // Nothing stored to clear.
   }
 }
+
+/** Show the whole first-run flow again (splash, intro, sign-up) next time. */
+export function replayIntro() {
+  resetOnboarding();
+  try {
+    window.localStorage.removeItem(TERMS_KEY);
+    window.localStorage.setItem(REPLAY_KEY, "1");
+  } catch {
+    // Nothing stored to clear.
+  }
+}
+
+const REPLAY_KEY = "naplemente:replay-intro";
+
+/** True once after replayIntro(), so the welcome asks for location again. */
+export function takeReplayFlag() {
+  const replay = read(REPLAY_KEY) === "1";
+  try {
+    window.localStorage.removeItem(REPLAY_KEY);
+  } catch {
+    // Ignore.
+  }
+  return replay;
+}

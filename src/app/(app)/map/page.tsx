@@ -113,7 +113,7 @@ export default function MapPage() {
   const [files, setFiles] = useState<{ file: File; url: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [justSaved, setJustSaved] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState<{ id: string; name: string } | null>(null);
 
   // Fly to you once we know where you are.
   const flownRef = useRef(false);
@@ -127,31 +127,25 @@ export default function MapPage() {
     });
   }, [here.coords]);
 
-  // While the save sheet is open the dock steps aside, and the keyboard
-  // slides over the sheet instead of pushing it up. Android Chrome reads
-  // this from the viewport meta tag (interactive-widget) and the
-  // VirtualKeyboard API; both are switched back when the sheet closes so
-  // the chat bar still rises above the keyboard.
+  // While the save sheet is open the dock steps aside, and on Android the
+  // screen shrinks above the keyboard (interactive-widget=resizes-content)
+  // so the sheet rides up and you can see what you type. The map itself is
+  // sized to the large viewport, so it stays where it is underneath.
   const sheetOpen = draft !== null;
   useEffect(() => {
     if (!sheetOpen) return;
     const root = document.documentElement;
     const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
     const originalViewport = meta?.content;
-    const keyboard = (navigator as Navigator & {
-      virtualKeyboard?: { overlaysContent: boolean };
-    }).virtualKeyboard;
 
     root.dataset.sheet = "open";
     if (meta && originalViewport && !originalViewport.includes("interactive-widget")) {
-      meta.content = `${originalViewport}, interactive-widget=overlays-content`;
+      meta.content = `${originalViewport}, interactive-widget=resizes-content`;
     }
-    if (keyboard) keyboard.overlaysContent = true;
 
     return () => {
       delete root.dataset.sheet;
       if (meta && originalViewport !== undefined) meta.content = originalViewport;
-      if (keyboard) keyboard.overlaysContent = false;
     };
   }, [sheetOpen]);
 
@@ -169,9 +163,14 @@ export default function MapPage() {
     URL.revokeObjectURL(url);
     setFiles((list) => list.filter((f) => f.url !== url));
   };
+  const [closing, setClosing] = useState(false);
   const closeSheet = () => {
-    clearFiles();
-    setDraft(null);
+    setClosing(true);
+    window.setTimeout(() => {
+      clearFiles();
+      setDraft(null);
+      setClosing(false);
+    }, 220);
   };
 
   const locate = async () => {
@@ -230,7 +229,7 @@ export default function MapPage() {
       const media = await Promise.all(files.map((f) => storeMedia(f.file)));
       const spot = saveSpot({ name: name.trim(), note: note.trim(), ...draft, media });
       closeSheet();
-      setJustSaved(spot.name);
+      setJustSaved({ id: spot.id, name: spot.name });
       window.setTimeout(() => setJustSaved(null), 2600);
     } catch {
       setError("Couldn't save the photos on this device. Try fewer or smaller files.");
@@ -283,8 +282,17 @@ export default function MapPage() {
             <MapMarker key={spot.id} latitude={spot.latitude} longitude={spot.longitude}>
               {/* Your spots: a small glowing dot, with a finger-sized tap area around it */}
               <MarkerContent>
-                <span role="button" aria-label={`Open ${spot.name}`} className="grid size-8 place-items-center">
-                  <span className="block size-2.5 rounded-full bg-[radial-gradient(circle_at_40%_35%,#ffe2a8,#ff7a3d)] shadow-[0_0_0_2px_#000,0_0_12px_3px_rgba(255,140,60,0.55)]" />
+                <span role="button" aria-label={`Open ${spot.name}`} className="relative grid size-8 place-items-center">
+                  {justSaved?.id === spot.id && (
+                    // Just saved: a ripple goes out from the new dot.
+                    <span aria-hidden className="absolute size-2.5 animate-ping rounded-full bg-gold/70" />
+                  )}
+                  <span
+                    className={cn(
+                      "block size-2.5 rounded-full bg-[radial-gradient(circle_at_40%_35%,#ffe2a8,#ff7a3d)] shadow-[0_0_0_2px_#000,0_0_12px_3px_rgba(255,140,60,0.55)]",
+                      justSaved?.id === spot.id && "animate-in zoom-in-0 duration-500 ease-out",
+                    )}
+                  />
                 </span>
               </MarkerContent>
               <MarkerPopup className="w-64 rounded-[1.25rem] border-dusk-edge p-3">
@@ -351,7 +359,7 @@ export default function MapPage() {
               role="status"
               className="px-5 py-3 text-center [text-shadow:0_1px_8px_rgb(0_0_0/0.55)] animate-in fade-in slide-in-from-top-2"
             >
-              Saved {justSaved}
+              Saved {justSaved.name}
             </LiquidSurface>
           </div>
         )}
@@ -363,7 +371,12 @@ export default function MapPage() {
             onSubmit={submit}
             // Fixed to the visible screen (the map itself is sized to the
             // large viewport for the keyboard), and scrollable if it's tall.
-            className="fixed inset-x-0 bottom-0 z-30 mx-auto max-h-[85dvh] max-w-md overflow-y-auto overscroll-contain rounded-t-[1.75rem] border-t border-dusk-edge bg-dusk px-5 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] animate-in slide-in-from-bottom duration-300 ease-out"
+            className={cn(
+              "fixed inset-x-0 bottom-0 z-30 mx-auto max-h-[85dvh] max-w-md overflow-y-auto overscroll-contain rounded-t-[1.75rem] border-t border-dusk-edge bg-dusk px-5 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)]",
+              closing
+                ? "animate-out fade-out slide-out-to-bottom fill-mode-forwards duration-200 ease-in"
+                : "animate-in slide-in-from-bottom duration-300 ease-out",
+            )}
           >
             <div aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-dusk-edge" />
             {/* Save sits up top so it stays reachable above the keyboard. */}
@@ -417,7 +430,10 @@ export default function MapPage() {
                   <ImagePlus className="size-6" />
                 </button>
                 {files.map((f) => (
-                  <div key={f.url} className="relative size-16 shrink-0 overflow-hidden rounded-2xl">
+                  <div
+                    key={f.url}
+                    className="relative size-16 shrink-0 overflow-hidden rounded-2xl animate-in fade-in zoom-in-75 duration-300 ease-out"
+                  >
                     {f.file.type.startsWith("video/") ? (
                       <video src={f.url} muted playsInline className="h-full w-full object-cover" />
                     ) : (
