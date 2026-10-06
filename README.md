@@ -15,8 +15,14 @@ Next.js, Tailwind, shadcn/ui and Supabase.
 | `/login` | Apple, Google, or email and password |
 | `/permissions/location` | Why we ask, then the real sunset time where you are |
 | `/permissions/notifications` | Sunset reminders (with Home Screen hint on iPhone) |
-| `/home` | Tonight's sunset countdown and a swipeable carousel of sunsets (with the bottom dock) |
-| `/map`, `/add`, `/profile` | The other dock tabs, placeholders for now |
+| `/map` | Main tab. Dark map with your spots and friends' spots; Save a spot drops a pin at the center |
+| `/sunset` | Countdown, golden and blue hour, tonight's sunset rating and a 5-day forecast (Open-Meteo), friends' sunset photos |
+| `/friends`, `/friends/[id]` | Search people, add friends, demo chat with typed replies |
+| `/profile` | Name, stats, saved spots, log out, credits |
+
+Spots, friends and messages are stored on the device (localStorage) until
+Supabase tables replace them. The people and replies in the Friends tab are
+made up for the demo (`src/lib/demo-people.ts`).
 
 The globe is Aceternity's `3d-globe` (`src/components/ui/3d-globe.tsx`),
 extended with a day/night shader: the sun is fixed relative to the camera,
@@ -27,6 +33,10 @@ Earth turns. Textures are served locally from `public/textures`.
 
 - 3D globe and floating dock: [Aceternity UI](https://ui.aceternity.com)
 - Card swipe carousel: [Skiper UI](https://skiper-ui.com) (free tier, attribution required)
+- Map: [mapcn](https://mapcn.dev) on MapLibre, tiles © CARTO, © OpenStreetMap contributors
+- Liquid glass: [Liquefy UI](https://liquefy-ui.com)
+- Weather: [Open-Meteo](https://open-meteo.com)
+- Photos: [Unsplash](https://unsplash.com)
 - Earth textures: NASA Blue Marble and Black Marble, via three-globe
 
 ## Run it

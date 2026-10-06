@@ -3,6 +3,7 @@
 import { Map, MessageCircle, Sunset, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { FloatingDock, type DockItem } from "@/components/ui/floating-dock";
+import { LiquidSurface } from "@/components/ui/liquid-surface";
 
 const ITEMS: DockItem[] = [
   { title: "Map", href: "/map", icon: <Map strokeWidth={1.75} /> },
@@ -18,11 +19,13 @@ export function AppDock() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)]">
-      <FloatingDock
-        items={ITEMS}
-        activeHref={pathname}
-        className="pointer-events-auto"
-      />
+      <LiquidSurface radius="1.75rem" className="pointer-events-auto">
+        <FloatingDock
+          items={ITEMS}
+          activeHref={pathname}
+          className="border-transparent bg-transparent backdrop-blur-none"
+        />
+      </LiquidSurface>
     </div>
   );
 }

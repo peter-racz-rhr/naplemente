@@ -6,12 +6,17 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Vendored registry components (mapcn) predate the React Compiler lint
-    // rules; keep them as published so they can be updated from upstream.
-    files: ["src/components/ui/map.tsx"],
+    // Vendored registry code (mapcn, Liquefy UI) predates the React Compiler
+    // lint rules; keep it as published so it can be updated from upstream.
+    files: [
+      "src/components/ui/map.tsx",
+      "src/lib/styles-prop.ts",
+      "src/hooks/use-liquid-glass.ts",
+    ],
     rules: {
       "react-hooks/refs": "off",
       "react-hooks/set-state-in-effect": "off",
+      "react-hooks/use-memo": "off",
     },
   },
   // Override default ignores of eslint-config-next.

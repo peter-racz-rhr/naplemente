@@ -1,9 +1,13 @@
 "use client";
 
+import "@/lib/maplibre-worker";
 import { LocateFixed, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Avatar } from "@/components/avatar";
 import { Field } from "@/components/onboarding/field";
+import { LiquidButton } from "@/components/ui/liquid-button";
+import { LiquidIconButton } from "@/components/ui/liquid-icon-button";
+import { LiquidSurface } from "@/components/ui/liquid-surface";
 import {
   Map,
   MapMarker,
@@ -166,29 +170,30 @@ export default function MapPage() {
       </Map>
 
       {/* Top bar */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 px-4 pt-[max(env(safe-area-inset-top),0.75rem)]">
-        <div className="glass pointer-events-auto rounded-full px-4 py-2.5 text-[0.9375rem]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-4 pt-[max(env(safe-area-inset-top),0.75rem)]">
+        <LiquidSurface radius={999} className="pointer-events-auto px-4 py-2.5 text-[0.9375rem]">
           {saving
             ? "Move the map to put the pin on your spot"
             : spots.length === 0
               ? "Save the places you watch the sunset"
               : `${spots.length} saved ${spots.length === 1 ? "spot" : "spots"}`}
-        </div>
-        <button
-          type="button"
+        </LiquidSurface>
+        <LiquidIconButton
+          label="Show where I am"
+          shape="circle"
+          size="lg"
           onClick={locate}
-          aria-label="Show where I am"
-          className="glass pointer-events-auto grid size-11 shrink-0 place-items-center rounded-full text-ink active:scale-95"
+          className="pointer-events-auto shrink-0"
         >
           <LocateFixed className={cn("size-5", here.status === "locating" && "animate-pulse")} />
-        </button>
+        </LiquidIconButton>
       </div>
 
       {/* Pin in the middle while choosing where to save */}
       {saving && (
         <div
           aria-hidden
-          className="pointer-events-none absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-full flex-col items-center"
+          className="pointer-events-none absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-full flex-col items-center"
         >
           <span className="sun-mark block size-9 rounded-full ring-4 ring-night" />
           <span className="h-5 w-0.5 bg-ink" />
@@ -198,7 +203,7 @@ export default function MapPage() {
       {justSaved && (
         <p
           role="status"
-          className="glass absolute inset-x-6 bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6.5rem)] rounded-2xl px-4 py-3 text-center animate-in fade-in slide-in-from-bottom-2"
+          className="glass absolute inset-x-6 z-20 bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6.5rem)] rounded-2xl px-4 py-3 text-center animate-in fade-in slide-in-from-bottom-2"
         >
           Saved {justSaved}
         </p>
@@ -207,19 +212,22 @@ export default function MapPage() {
       {/* Save a spot */}
       {!saving ? (
         !justSaved && (
-          <button
-            type="button"
-            onClick={startSaving}
-            className="glass absolute bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6.5rem)] left-1/2 inline-flex h-14 -translate-x-1/2 items-center gap-2 rounded-full px-6 text-[1.0625rem] font-semibold text-ink transition-transform active:scale-[0.97]"
-          >
-            <Plus className="size-5" aria-hidden /> Save a spot
-          </button>
+          <div className="absolute bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6.5rem)] left-1/2 z-20 -translate-x-1/2">
+            <LiquidButton
+              size="lg"
+              onClick={startSaving}
+              className="h-14 px-7 text-[1.0625rem] font-semibold [--lq-button-radius:999px]"
+              iconBefore={<Plus className="size-5" aria-hidden />}
+            >
+              Save a spot
+            </LiquidButton>
+          </div>
         )
       ) : (
         <form
           noValidate
           onSubmit={submit}
-          className="absolute inset-x-3 bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6rem)] z-10 rounded-[1.75rem] border border-dusk-edge bg-dusk p-5 animate-in fade-in slide-in-from-bottom-4"
+          className="absolute inset-x-3 bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6rem)] z-20 rounded-[1.75rem] border border-dusk-edge bg-dusk p-5 animate-in fade-in slide-in-from-bottom-4"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-[1.25rem] font-semibold tracking-[-0.02em]">Save this spot</h2>

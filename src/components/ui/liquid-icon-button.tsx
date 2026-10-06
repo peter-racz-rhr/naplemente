@@ -1,0 +1,74 @@
+'use client'
+
+import { Button } from '@base-ui/react/button'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useLiquefyConfig } from '@/lib/provider'
+import { useLiquidStyles, type LiquidStyleProps } from '@/lib/styles-prop'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
+
+export type LiquidIconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & LiquidStyleProps & {
+  children: ReactNode
+  label: string
+  shape?: 'circle' | 'rounded'
+  size?: 'sm' | 'md' | 'lg'
+  tint?: string
+}
+
+export const LiquidIconButton = forwardRef<HTMLButtonElement, LiquidIconButtonProps>(({
+  children,
+  className,
+  disabled,
+  label,
+  shape = 'rounded',
+  size = 'md',
+  style,
+  styles,
+  tint,
+  ...props
+}, forwardedRef) => {
+  const config = useLiquefyConfig()
+  const resolvedTint = tint ?? config.tint
+  const [elementRef, canvasRef] = useLiquidGlass(forwardedRef, {
+    bounce: 0.085,
+    disabled,
+    glow: config.glow,
+    intensity: config.intensity,
+    lens: config.lens && config.transparency,
+    lensStrength: config.refraction,
+    motion: config.motion,
+    ripple: config.ripple,
+    shimmer: config.shimmer,
+    sparkle: config.sparkle,
+    tilt: 3,
+    tint: resolvedTint,
+    webgl: config.webgl,
+    wobbliness: config.wobbliness,
+  })
+  const root = useLiquidStyles(['lq-button', 'lq-icon-button'], {
+    className,
+    style,
+    styles,
+    vars: { '--lq-button-tint': resolvedTint },
+  })
+
+  return (
+    <Button
+      aria-label={label}
+      className={root.className}
+      data-liquid-shape={shape}
+      data-liquid-size={size}
+      disabled={disabled}
+      ref={elementRef}
+      style={root.style}
+      title={label}
+      type="button"
+      {...props}
+    >
+      <span aria-hidden="true" className="lq-surface__edge" />
+      {config.webgl && <canvas aria-hidden="true" className="lq-surface__shader" ref={canvasRef} />}
+      <span className="lq-button__content">{children}</span>
+    </Button>
+  )
+})
+
+LiquidIconButton.displayName = 'LiquidIconButton'

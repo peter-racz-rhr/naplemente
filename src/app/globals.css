@@ -1,3 +1,5 @@
+/* Liquefy UI glass styles load before Tailwind so utilities win. */
+@import "../styles/liquefy-ui.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -185,4 +187,14 @@
     0 10px 30px -10px rgb(0 0 0 / 0.6);
   backdrop-filter: blur(18px) saturate(1.6);
   -webkit-backdrop-filter: blur(18px) saturate(1.6);
+}
+
+/*
+  Tailwind's preflight (base layer) resets button corners to 0 and outranks
+  the liquefy-ui layer, so restore Liquefy's own rounded, squishy shape.
+*/
+@layer components {
+  .lq-button {
+    border-radius: calc(var(--lq-button-radius) + var(--lq-squish) * 5px);
+  }
 }
