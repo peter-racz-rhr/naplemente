@@ -40,6 +40,7 @@ Earth turns. Textures are served locally from `public/textures`.
 - Weather: [Open-Meteo](https://open-meteo.com)
 - Photos: [Unsplash](https://unsplash.com)
 - Earth textures: NASA Blue Marble and Black Marble, via three-globe
+- Moon texture: NASA lunar imagery, via the three.js examples (`public/textures/moon.jpg`)
 
 ## Run it
 

@@ -1,8 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
-import { getMoonIllumination, getMoonPosition, getPosition, getTimes } from "suncalc";
+import { getMoonIllumination, getMoonPosition, getMoonTimes, getPosition, getTimes } from "suncalc";
 import { formatClock } from "@/lib/sun";
+
+// The 3D sun and moon load in the browser only.
+const Sun3D = dynamic(() => import("./sky-bodies").then((m) => m.Sun3D), { ssr: false });
+const Moon3D = dynamic(() => import("./sky-bodies").then((m) => m.Moon3D), { ssr: false });
 
 /*
   The sky above you right now. The view faces the sun at midday (south in
@@ -65,14 +70,6 @@ const STARS = Array.from({ length: 70 }, (_, i) => {
   return { x: r(1) * 100, y: r(2) * (HORIZON - 6), size: 0.5 + r(3) * 1.3, o: 0.35 + r(4) * 0.65 };
 });
 
-/** The lit part of the moon for its phase, as an SVG path in a unit circle. */
-function moonPath(fraction: number) {
-  const rx = Math.abs(1 - 2 * fraction);
-  const sweep = fraction < 0.5 ? 0 : 1;
-  // Right half of the disc, closed by the terminator ellipse.
-  return `M0,-1 A1,1 0 0 1 0,1 A${rx},1 0 0 ${sweep} 0,-1 Z`;
-}
-
 export function LiveSky({
   latitude,
   longitude,
@@ -97,38 +94,34 @@ export function LiveSky({
   const facing = Math.abs(((noonAzimuth - 180 + 540) % 360) - 180) < 90 ? 180 : 0;
   const night = Math.min(1, Math.max(0, (-sun.altitude - 4) / 10));
 
-  // Today's path of the sun, sunrise to sunset, split wherever it leaves
-  // the view so it never draws a line across the sky.
-  const paths: string[][] = [[]];
-  if (times.sunrise && times.sunset) {
-    let lastX: number | null = null;
-    for (let t = times.sunrise.getTime(); t <= times.sunset.getTime(); t += 5 * 60000) {
-      const p = getPosition(new Date(t), latitude, longitude);
-      const x = skyX(p.azimuth, facing);
-      if (x === null || (lastX !== null && Math.abs(x - lastX) > 20)) paths.push([]);
-      if (x !== null) paths[paths.length - 1].push(`${x.toFixed(2)},${skyY(p.altitude).toFixed(2)}`);
-      lastX = x;
-    }
-  }
-  const sunsetX =
-    times.sunset ? skyX(getPosition(times.sunset, latitude, longitude).azimuth, facing) : null;
-
   const sunX = skyX(sun.azimuth, facing);
   const moonX = skyX(moon.azimuth, facing);
   const sunUp = sun.altitude > -1 && sunX !== null;
   const moonUp = moon.altitude > -1 && moonX !== null;
   const low = Math.max(0, Math.min(1, 1 - sun.altitude / 15));
-  // Looking north (southern hemisphere) the lit side is mirrored.
-  const moonFlip = (illumination.waxing ? 1 : -1) * (facing === 180 ? 1 : -1);
+
+  // When the moon is down at night, say when it comes up.
+  let moonrise: Date | null = null;
+  if (!moonUp && sun.altitude < -6) {
+    const today = getMoonTimes(now, latitude, longitude).rise;
+    moonrise =
+      today && today > now
+        ? today
+        : (getMoonTimes(new Date(now.getTime() + 864e5), latitude, longitude).rise ?? null);
+  }
 
   return (
     <div
       className="relative h-[max(56dvh,22rem)] overflow-hidden"
       style={{
-        background: `linear-gradient(to bottom, ${colours.top} 0%, ${colours.mid} 52%, ${colours.low} ${HORIZON}%, #000 ${HORIZON + 0.1}%)`,
+        // The sky fades into the page instead of ending at a hard horizon.
+        background: `linear-gradient(to bottom, ${colours.top} 0%, ${colours.mid} 45%, ${colours.low} 72%, #000 100%)`,
         transition: "background 2s linear",
       }}
     >
+      {/* Soft fade to the page at the bottom (under the sun and moon) */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-night" />
+
       {/* Stars fade in as it gets dark */}
       <svg aria-hidden className="absolute inset-0 h-full w-full" style={{ opacity: night }}>
         {STARS.map((s, i) => (
@@ -136,39 +129,20 @@ export function LiveSky({
         ))}
       </svg>
 
-      {/* Today's arc of the sun */}
-      <svg aria-hidden viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-        {paths
-          .filter((p) => p.length > 1)
-          .map((p, i) => (
-            <polyline
-              key={i}
-              points={p.join(" ")}
-              fill="none"
-              stroke="rgb(255 220 170 / 0.35)"
-              strokeWidth={1.2}
-              strokeDasharray="1.5 5"
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-      </svg>
-
-      {/* Moon, in its real phase */}
+      {/* Moon: a lit 3D sphere in its real phase */}
       {moonUp && (
         <div
           aria-hidden
-          className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-[2s] ease-linear"
+          // Screen blending: only the lit part adds light, the dark side is
+          // invisible against the sky, as it is in real life.
+          className="absolute -translate-x-1/2 -translate-y-1/2 mix-blend-screen transition-[left,top] duration-[2s] ease-linear"
           style={{ left: `${moonX}%`, top: `${skyY(moon.altitude)}%` }}
         >
-          <svg viewBox="-1.2 -1.2 2.4 2.4" className="size-9 drop-shadow-[0_0_10px_rgba(220,225,255,0.35)]">
-            <circle r={1} fill="rgb(255 255 255 / 0.08)" />
-            <path d={moonPath(illumination.fraction)} fill="#eef0f6" transform={`scale(${moonFlip},1)`} />
-          </svg>
+          <Moon3D phase={illumination.phase} mirror={facing !== 180} size={76} />
         </div>
       )}
 
-      {/* Sun, warmer and bigger near the horizon */}
+      {/* Sun: a glowing 3D sphere, warmer and bigger near the horizon */}
       {sunUp && (
         <div
           aria-hidden
@@ -176,31 +150,17 @@ export function LiveSky({
           style={{
             left: `${sunX}%`,
             top: `${skyY(sun.altitude)}%`,
-            width: 26 + 10 * low,
-            height: 26 + 10 * low,
-            background: `radial-gradient(circle at 45% 40%, #fffaf0, ${mix("#ffe9b8", "#ff8a4c", low)} 70%)`,
-            boxShadow: `0 0 ${30 + 30 * low}px ${8 + 10 * low}px ${mix("#fff2cf", "#ff7a3d", low).slice(0, -1)} / 0.55)`,
+            boxShadow: `0 0 ${50 + 40 * low}px ${14 + 14 * low}px ${mix("#fff2cf", "#ff7a3d", low).slice(0, -1)} / 0.5)`,
           }}
-        />
+        >
+          <Sun3D warmth={low} size={Math.round(58 + 16 * low)} />
+        </div>
       )}
 
-      {/* The ground, and where the sun goes down today */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 bottom-0 bg-night"
-        style={{ top: `${HORIZON}%`, boxShadow: "0 -1px 0 rgb(255 255 255 / 0.08)" }}
-      />
-      {sunsetX !== null && times.sunset && (
-        <div
-          aria-hidden
-          className="absolute -translate-x-1/2 text-center"
-          style={{ left: `${sunsetX}%`, top: `${HORIZON}%` }}
-        >
-          <span className="mx-auto block h-2 w-px bg-gold/80" />
-          <span className="mt-1 block text-[0.75rem] text-gold tabular-nums">
-            {formatClock(times.sunset)}
-          </span>
-        </div>
+      {moonrise && (
+        <p className="absolute right-6 bottom-4 text-[0.8125rem] text-haze">
+          Moon rises at {formatClock(moonrise)}
+        </p>
       )}
 
       <div className="relative">{children}</div>
