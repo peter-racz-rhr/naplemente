@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } fro
 import { createPortal } from "react-dom";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
-import { SunsetDirection } from "@/components/sunset-direction";
+import { SpotSunsetTick, SunsetDirection } from "@/components/sunset-direction";
 import { Field } from "@/components/onboarding/field";
 import { FORWARD, PageTransition } from "@/components/page-transition";
 import { LiquidIconButton } from "@/components/ui/liquid-icon-button";
@@ -253,6 +253,14 @@ export default function MapPage() {
           className="h-full w-full"
         >
           <TapToSave onTap={startDraft} />
+
+          {/* Short sunset lines first, so the spot dots sit on top of them */}
+          {friends.map((person) => (
+            <SpotSunsetTick key={`tick-${person.id}`} {...person.spot} />
+          ))}
+          {spots.map((spot) => (
+            <SpotSunsetTick key={`tick-${spot.id}`} latitude={spot.latitude} longitude={spot.longitude} />
+          ))}
 
           {friends.map((person) => (
             <MapMarker key={person.id} latitude={person.spot.latitude} longitude={person.spot.longitude}>

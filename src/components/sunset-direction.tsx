@@ -129,3 +129,46 @@ export function SunsetDirection({
     </MapMarker>
   );
 }
+
+/**
+ * A short, thin line from a saved spot toward where the sun sets from
+ * there: just enough to compare spots at a glance. Must be inside <Map>,
+ * rendered before the spot's own marker so the dot sits on top.
+ */
+export function SpotSunsetTick({
+  latitude,
+  longitude,
+  lengthPx = 44,
+}: {
+  latitude: number;
+  longitude: number;
+  lengthPx?: number;
+}) {
+  const next = nextSunset(latitude, longitude);
+  if (next.kind === "none") return null;
+  const bearing = sunsetBearing(latitude, longitude, next.at);
+
+  return (
+    <MapMarker
+      latitude={latitude}
+      longitude={longitude}
+      rotation={bearing}
+      rotationAlignment="map"
+      className="sun-light"
+    >
+      <MarkerContent className="pointer-events-none cursor-default">
+        <span aria-hidden className="relative block" style={{ width: lengthPx * 2, height: lengthPx * 2 }}>
+          <span
+            className="absolute top-0 left-1/2 w-[2px] -translate-x-1/2 rounded-full"
+            style={{
+              height: lengthPx,
+              // Solid where it leaves the dot, fading out toward the tip.
+              background:
+                "linear-gradient(to top, rgb(255 181 77 / 0.95) 0%, rgb(255 181 77 / 0.95) 40%, rgb(255 122 61 / 0) 100%)",
+            }}
+          />
+        </span>
+      </MarkerContent>
+    </MapMarker>
+  );
+}
