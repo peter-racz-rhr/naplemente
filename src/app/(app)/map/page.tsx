@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } fro
 import { createPortal } from "react-dom";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
-import { SpotSunsetTick, SunsetDirection } from "@/components/sunset-direction";
+import { SpotLineMarker, SpotSunsetTick, SunsetDirection } from "@/components/sunset-direction";
 import { Field } from "@/components/onboarding/field";
 import { FORWARD, PageTransition } from "@/components/page-transition";
 import { LiquidIconButton } from "@/components/ui/liquid-icon-button";
@@ -254,14 +254,10 @@ export default function MapPage() {
         >
           <TapToSave onTap={startDraft} />
 
-          {/* Short sunset lines first, so the spot dots sit on top of them */}
+          {/* Friends' sunset lines first, so their avatars sit on top */}
           {friends.map((person) => (
             <SpotSunsetTick key={`tick-${person.id}`} {...person.spot} />
           ))}
-          {spots.map((spot) => (
-            <SpotSunsetTick key={`tick-${spot.id}`} latitude={spot.latitude} longitude={spot.longitude} />
-          ))}
-
           {friends.map((person) => (
             <MapMarker key={person.id} latitude={person.spot.latitude} longitude={person.spot.longitude}>
               <MarkerContent>
@@ -283,10 +279,13 @@ export default function MapPage() {
           ))}
 
           {spots.map((spot) => (
-            <MapMarker key={spot.id} latitude={spot.latitude} longitude={spot.longitude}>
-              <MarkerContent>
-                <span className="sun-mark block size-7 rounded-full ring-2 ring-night" />
-              </MarkerContent>
+            // Your spots are just a line toward their sunset, no dot.
+            <SpotLineMarker
+              key={spot.id}
+              latitude={spot.latitude}
+              longitude={spot.longitude}
+              label={`Open ${spot.name}`}
+            >
               <MarkerPopup className="w-64 rounded-[1.25rem] border-dusk-edge p-3">
                 {spot.media?.[0] && (
                   <MediaThumb media={spot.media[0]} controls className="mb-3 aspect-[4/3] w-full" />
@@ -307,7 +306,7 @@ export default function MapPage() {
                   <OpenSpotLink href={spotHref(spot.id)} />
                 </div>
               </MarkerPopup>
-            </MapMarker>
+            </SpotLineMarker>
           ))}
 
           {/* Where the sunlight comes from, and how strong it is */}
