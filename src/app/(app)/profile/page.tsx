@@ -1,28 +1,59 @@
 "use client";
 
-import { LogOut, MapPin, RotateCcw } from "lucide-react";
+import { ChevronRight, LogOut, Pencil, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Avatar } from "@/components/avatar";
+import { useState, type FormEvent } from "react";
 import { MediaThumb } from "@/components/media-thumb";
 import { BACK, FORWARD, PageTransition } from "@/components/page-transition";
-import { getSupabase } from "@/lib/supabase/client";
-import { replayIntro, resetOnboarding } from "@/lib/onboarding";
 import { SOCIAL_ENABLED } from "@/lib/features";
-import { useDisplayName } from "@/lib/profile";
+import { replayIntro, resetOnboarding } from "@/lib/onboarding";
+import { setDisplayName, useDisplayName } from "@/lib/profile";
 import { useFriendIds } from "@/lib/social";
 import { spotHref } from "@/lib/spot-detail";
-import { useSpots } from "@/lib/spots";
+import { useSpots, type Spot } from "@/lib/spots";
+import { getSupabase } from "@/lib/supabase/client";
+import { formatClock, nextSunset } from "@/lib/sun";
 
-const savedOn = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" });
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** A spot without a photo gets a little dusk sky with its sunset time. */
+function SkyTile({ spot }: { spot: Spot }) {
+  const next = nextSunset(spot.latitude, spot.longitude);
+  return (
+    <div className="relative h-full w-full bg-[linear-gradient(to_bottom,#141a3c,#57345f_55%,#dc6648_80%,#000_80.5%)]">
+      <span className="sun-mark absolute bottom-[19.5%] left-1/2 block h-3 w-6 -translate-x-1/2 rounded-t-full" />
+      {next.kind === "sunset" && (
+        <span className="absolute right-3 bottom-2 text-[0.75rem] text-gold tabular-nums">
+          {formatClock(next.at)}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const router = useRouter();
-  const name = useDisplayName() || "You";
+  const storedName = useDisplayName();
   const spots = useSpots();
   const friendIds = useFriendIds();
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState("");
 
-  // For trying the app from the very start: your spots and chats stay.
+  const media = spots.reduce((n, s) => n + (s.media?.length ?? 0), 0);
+  const summary = [
+    plural(spots.length, "spot", "spots"),
+    ...(media > 0 ? [plural(media, "photo or video", "photos and videos")] : []),
+    ...(SOCIAL_ENABLED ? [plural(friendIds.length, "friend", "friends")] : []),
+  ].join(" · ");
+
+  const saveName = (event: FormEvent) => {
+    event.preventDefault();
+    setDisplayName(draftName.trim());
+    setEditing(false);
+  };
+
+  // For trying the app from the very start: your spots stay.
   const showIntro = () => {
     replayIntro();
     router.replace("/", { transitionTypes: BACK });
@@ -37,68 +68,68 @@ export default function ProfilePage() {
   return (
     <PageTransition>
       <main className="mx-auto w-full max-w-md px-6 pt-[max(env(safe-area-inset-top),1rem)]">
-        <div className="flex flex-col items-center pt-8 text-center">
-          <Avatar name={name} colors={["#ffb54d", "#f0648c"]} className="size-24 text-[1.75rem]" />
-          <h1 className="mt-4 t-title">
-            {name}
-          </h1>
-        </div>
+        {/* Name and a one-line summary */}
+        <header className="pt-8">
+          {editing ? (
+            <form onSubmit={saveName} className="flex items-center gap-2">
+              <label htmlFor="name" className="sr-only">
+                Your name
+              </label>
+              <input
+                id="name"
+                autoFocus
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                onBlur={saveName}
+                placeholder="Your name"
+                autoComplete="given-name"
+                className="t-display min-w-0 flex-1 border-b border-dusk-edge bg-transparent pb-1 text-ink outline-none placeholder:text-haze/50 focus:border-gold"
+              />
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setDraftName(storedName);
+                setEditing(true);
+              }}
+              className="group flex items-baseline gap-3 text-left"
+            >
+              <h1 className={storedName ? "t-display" : "t-display text-haze"}>
+                {storedName || "Add your name"}
+              </h1>
+              <Pencil className="size-4 shrink-0 text-haze opacity-60 group-hover:opacity-100" aria-label="Edit name" />
+            </button>
+          )}
+          <p className="mt-3 text-[1.0625rem] text-haze">{summary}</p>
+        </header>
 
-        <dl className="mt-8 grid grid-cols-2 gap-2">
-          <div className="rounded-[1.5rem] bg-dusk p-4 text-center">
-            <dd className="t-card-title tabular-nums">{spots.length}</dd>
-            <dt className="text-sm text-haze">Saved spots</dt>
-          </div>
-          <div className="rounded-[1.5rem] bg-dusk p-4 text-center">
-            {SOCIAL_ENABLED ? (
-              <>
-                <dd className="t-card-title tabular-nums">{friendIds.length}</dd>
-                <dt className="text-sm text-haze">Friends</dt>
-              </>
-            ) : (
-              <>
-                <dd className="t-card-title tabular-nums">
-                  {spots.reduce((n, s) => n + (s.media?.length ?? 0), 0)}
-                </dd>
-                <dt className="text-sm text-haze">Photos and videos</dt>
-              </>
-            )}
-          </div>
-        </dl>
-
-        <section className="mt-8" aria-labelledby="spots-heading">
+        {/* Spots as a grid of photos (or a little sky when there's none) */}
+        <section className="mt-10" aria-labelledby="spots-heading">
           <h2 id="spots-heading" className="t-section">
             Your spots
           </h2>
           {spots.length === 0 ? (
-            <p className="mt-2 text-haze">
-              Nothing saved yet. On the Map tab, tap Save a spot.
+            <p className="mt-2 max-w-[32ch] text-haze">
+              Nothing saved yet. Tap anywhere on the map to save the place you&apos;re watching from.
             </p>
           ) : (
-            <ul className="mt-2 divide-y divide-dusk-edge">
+            <ul className="mt-4 grid grid-cols-2 gap-2">
               {spots.map((spot) => (
                 <li key={spot.id}>
                   <Link
                     href={spotHref(spot.id)}
                     transitionTypes={FORWARD}
-                    className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3.5 hover:bg-dusk active:bg-dusk"
+                    className="relative block aspect-[4/5] overflow-hidden rounded-[1.25rem] bg-dusk active:scale-[0.98] transition-transform"
                   >
-                  {spot.media?.[0] ? (
-                    <MediaThumb media={spot.media[0]} className="size-12 shrink-0 rounded-xl" />
-                  ) : (
-                    <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-dusk">
-                      <MapPin className="size-5 text-gold" aria-hidden />
-                    </span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold">{spot.name}</span>
-                    {spot.note && (
-                      <span className="block truncate text-sm text-haze">{spot.note}</span>
+                    {spot.media?.[0] ? (
+                      <MediaThumb media={spot.media[0]} className="h-full w-full rounded-none" />
+                    ) : (
+                      <SkyTile spot={spot} />
                     )}
-                  </span>
-                  <span className="shrink-0 text-sm text-haze">
-                    {savedOn.format(new Date(spot.savedAt))}
-                  </span>
+                    <span className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/70 to-transparent px-3 pt-3 pb-8 text-[0.9375rem] leading-tight font-semibold">
+                      {spot.name}
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -106,42 +137,34 @@ export default function ProfilePage() {
           )}
         </section>
 
-        <section className="mt-10" aria-labelledby="settings-heading">
+        {/* Settings */}
+        <section className="mt-12" aria-labelledby="settings-heading">
           <h2 id="settings-heading" className="t-section">
             Settings
           </h2>
-          <ul className="mt-2 divide-y divide-dusk-edge overflow-hidden rounded-[1.5rem] bg-dusk">
+          <ul className="mt-2 divide-y divide-dusk-edge border-y border-dusk-edge">
             <li>
-              <button
-                type="button"
-                onClick={showIntro}
-                className="flex w-full items-center gap-3 px-4 py-4 text-left active:bg-dusk-edge/50"
-              >
-                <RotateCcw className="size-5 shrink-0 text-gold" aria-hidden />
+              <button type="button" onClick={showIntro} className="flex w-full items-center gap-4 py-4 text-left">
+                <RotateCcw className="size-5 shrink-0 text-haze" aria-hidden />
                 <span className="flex-1">
                   <span className="block">Show the intro again</span>
-                  <span className="block text-sm text-haze">
-                    Replays the welcome, sign-up and reminders. Your spots stay.
-                  </span>
+                  <span className="block text-sm text-haze">Welcome, sign-up and reminders. Your spots stay.</span>
                 </span>
+                <ChevronRight className="size-5 shrink-0 text-haze" aria-hidden />
               </button>
             </li>
             <li>
-              <button
-                type="button"
-                onClick={logOut}
-                className="flex w-full items-center gap-3 px-4 py-4 text-left text-error active:bg-dusk-edge/50"
-              >
-                <LogOut className="size-5 shrink-0" aria-hidden /> Log out
+              <button type="button" onClick={logOut} className="flex w-full items-center gap-4 py-4 text-left text-error">
+                <LogOut className="size-5 shrink-0" aria-hidden />
+                <span className="flex-1">Log out</span>
               </button>
             </li>
           </ul>
         </section>
 
-        <footer className="mt-10 border-t border-dusk-edge pt-5 pb-6 text-[0.8125rem] leading-relaxed text-haze">
-          Made with components from Aceternity UI, Skiper UI and mapcn. Map ©
-          CARTO, © OpenStreetMap contributors. Weather by Open-Meteo. Photos
-          from Unsplash.
+        <footer className="mt-10 pb-6 text-[0.8125rem] leading-relaxed text-haze">
+          Made with components from Aceternity UI, Skiper UI, Liquefy UI and mapcn. Map © CARTO, ©
+          OpenStreetMap contributors. Weather by Open-Meteo. Photos from Unsplash.
         </footer>
       </main>
     </PageTransition>
