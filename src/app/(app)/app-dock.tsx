@@ -4,12 +4,15 @@ import { Map, MessageCircle, Sunset, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { BACK, FORWARD } from "@/components/page-transition";
 import { FloatingDock, type DockItem } from "@/components/ui/floating-dock";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { LiquidSurface } from "@/components/ui/liquid-surface";
 
 const ITEMS: DockItem[] = [
   { title: "Map", href: "/map", icon: <Map strokeWidth={1.75} /> },
   { title: "Sunset", href: "/sunset", icon: <Sunset strokeWidth={1.75} /> },
-  { title: "Friends", href: "/friends", icon: <MessageCircle strokeWidth={1.75} /> },
+  ...(SOCIAL_ENABLED
+    ? [{ title: "Friends", href: "/friends", icon: <MessageCircle strokeWidth={1.75} /> }]
+    : []),
   { title: "Profile", href: "/profile", icon: <UserRound strokeWidth={1.75} /> },
 ];
 

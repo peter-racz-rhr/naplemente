@@ -8,6 +8,7 @@ import { MediaThumb } from "@/components/media-thumb";
 import { BACK, FORWARD, PageTransition } from "@/components/page-transition";
 import { getSupabase } from "@/lib/supabase/client";
 import { replayIntro, resetOnboarding } from "@/lib/onboarding";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { useDisplayName } from "@/lib/profile";
 import { useFriendIds } from "@/lib/social";
 import { spotHref } from "@/lib/spot-detail";
@@ -49,8 +50,19 @@ export default function ProfilePage() {
             <dt className="text-sm text-haze">Saved spots</dt>
           </div>
           <div className="rounded-[1.5rem] bg-dusk p-4 text-center">
-            <dd className="t-card-title tabular-nums">{friendIds.length}</dd>
-            <dt className="text-sm text-haze">Friends</dt>
+            {SOCIAL_ENABLED ? (
+              <>
+                <dd className="t-card-title tabular-nums">{friendIds.length}</dd>
+                <dt className="text-sm text-haze">Friends</dt>
+              </>
+            ) : (
+              <>
+                <dd className="t-card-title tabular-nums">
+                  {spots.reduce((n, s) => n + (s.media?.length ?? 0), 0)}
+                </dd>
+                <dt className="text-sm text-haze">Photos and videos</dt>
+              </>
+            )}
           </div>
         </dl>
 

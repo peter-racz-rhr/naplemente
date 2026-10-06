@@ -5,6 +5,7 @@ import { ActionButton } from "@/components/onboarding/action-button";
 import { PageTransition } from "@/components/page-transition";
 import { SunsetForecast } from "@/components/sunset-forecast";
 import { Carousel_002 } from "@/components/ui/skiper-ui/skiper48";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { SAMPLE_SUNSETS } from "@/lib/sample-sunsets";
 import { describeSunset, formatClock } from "@/lib/sun";
 import { useHere, useNow } from "@/lib/use-here";
@@ -93,10 +94,10 @@ export default function SunsetPage() {
           </section>
         )}
 
-        {/* Friends' sunsets */}
+        {/* Photo carousel */}
         <section className="mt-10" aria-labelledby="saved-heading">
           <h2 id="saved-heading" className="t-section">
-            Sunsets your friends saved
+            {SOCIAL_ENABLED ? "Sunsets your friends saved" : "Sunset inspiration"}
           </h2>
           <p className="mt-1 text-[0.9375rem] text-haze">Swipe through the cards.</p>
           <div className="-mx-6 mt-6 flex justify-center">

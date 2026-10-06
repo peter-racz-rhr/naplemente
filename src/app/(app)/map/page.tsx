@@ -20,6 +20,7 @@ import {
   type MapRef,
 } from "@/components/ui/map";
 import { PEOPLE } from "@/lib/demo-people";
+import { SOCIAL_ENABLED } from "@/lib/features";
 import { postForPerson } from "@/lib/demo-posts";
 import { storeMedia } from "@/lib/media-store";
 import { useFriendIds } from "@/lib/social";
@@ -100,7 +101,7 @@ export default function MapPage() {
   const here = useHere();
   const spots = useSpots();
   const friendIds = useFriendIds();
-  const friends = PEOPLE.filter((p) => friendIds.includes(p.id));
+  const friends = SOCIAL_ENABLED ? PEOPLE.filter((p) => friendIds.includes(p.id)) : [];
 
   const dockSlot = useSyncExternalStore(
     noSubscription,
