@@ -29,15 +29,20 @@ export function AppDock() {
     // No view-transition-name here: it would make this wrapper a backdrop
     // root and the liquid glass could no longer see (and bend) the page.
     <div
-      className="app-dock pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-[translate,opacity] duration-300 ease-out"
+      className="app-dock pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-[translate,opacity,visibility] duration-300 ease-out"
     >
-      <LiquidSurface radius={999} className="pointer-events-auto">
-        <FloatingDock
-          items={items}
-          activeHref={pathname}
-          className="border-transparent bg-transparent backdrop-blur-none"
-        />
-      </LiquidSurface>
+      <div className="relative">
+        {/* Pages can put a control here (the map's center-on-me button):
+            it sits just above the dock, lined up with its right edge. */}
+        <div id="dock-accessory" className="pointer-events-auto absolute right-0 bottom-full mb-3" />
+        <LiquidSurface radius={999} className="pointer-events-auto">
+          <FloatingDock
+            items={items}
+            activeHref={pathname}
+            className="border-transparent bg-transparent backdrop-blur-none"
+          />
+        </LiquidSurface>
+      </div>
     </div>
   );
 }

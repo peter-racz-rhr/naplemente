@@ -3,7 +3,8 @@
 import "@/lib/maplibre-worker";
 import { ChevronRight, ImagePlus, LocateFixed, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { Avatar } from "@/components/avatar";
 import { MediaThumb } from "@/components/media-thumb";
 import { SunsetDirection } from "@/components/sunset-direction";
@@ -28,6 +29,8 @@ import { saveSpot, useSpots } from "@/lib/spots";
 import { formatClock, nextSunset } from "@/lib/sun";
 import { useHere } from "@/lib/use-here";
 import { cn } from "@/lib/utils";
+
+const noSubscription = () => () => {};
 
 // Budapest, until we know where you are.
 const FALLBACK_CENTER: [number, number] = [19.04, 47.5];
@@ -100,6 +103,11 @@ export default function MapPage() {
   const friendIds = useFriendIds();
   const friends = PEOPLE.filter((p) => friendIds.includes(p.id));
 
+  const dockSlot = useSyncExternalStore(
+    noSubscription,
+    () => document.getElementById("dock-accessory"),
+    () => null,
+  );
   const [draft, setDraft] = useState<Draft | null>(null);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -317,14 +325,15 @@ export default function MapPage() {
           )}
         </Map>
 
-        {/* Center on me: bottom right, just above the dock */}
-        {!draft && (
-          <div className="absolute right-4 bottom-[calc(max(env(safe-area-inset-bottom),0.75rem)+6rem)] z-20 animate-in fade-in">
+        {/* Center on me: placed in the dock's accessory slot so it always sits
+            right above the dock's right edge, and hides along with it. */}
+        {dockSlot &&
+          createPortal(
             <LiquidIconButton label="Show where I am" shape="circle" size="lg" onClick={locate}>
               <LocateFixed className={cn("size-5", here.status === "locating" && "animate-pulse")} />
-            </LiquidIconButton>
-          </div>
-        )}
+            </LiquidIconButton>,
+            dockSlot,
+          )}
 
         {justSaved && (
           <div className="absolute inset-x-0 top-[max(env(safe-area-inset-top),0.75rem)] z-20 flex justify-center px-6">
