@@ -146,14 +146,10 @@ export function LiveSky({
       {sunUp && (
         <div
           aria-hidden
-          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-[left,top] duration-[2s] ease-linear"
-          style={{
-            left: `${sunX}%`,
-            top: `${skyY(sun.altitude)}%`,
-            boxShadow: `0 0 ${50 + 40 * low}px ${14 + 14 * low}px ${mix("#fff2cf", "#ff7a3d", low).slice(0, -1)} / 0.5)`,
-          }}
+          className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-[2s] ease-linear"
+          style={{ left: `${sunX}%`, top: `${skyY(sun.altitude)}%` }}
         >
-          <Sun3D warmth={low} size={Math.round(58 + 16 * low)} />
+          <Sun3D warmth={low} disc={Math.round(54 + 14 * low)} />
         </div>
       )}
 
