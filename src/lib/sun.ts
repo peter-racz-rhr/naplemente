@@ -76,3 +76,36 @@ export function sunsetBearing(latitude: number, longitude: number, at: Date) {
 const COMPASS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 export const compassPoint = (bearing: number) =>
   COMPASS[Math.round(bearing / 22.5) % 16];
+
+/**
+ * The point on Earth where the sun is straight overhead right now. The line
+ * 90° away from it is where the sun is rising and setting. Low-precision
+ * almanac formulas, good to about 0.01°.
+ */
+export function subsolarPoint(date: Date) {
+  const rad = Math.PI / 180;
+  const n = date.getTime() / DAY_MS - 10957.5; // days since J2000.0
+  const meanLongitude = 280.46 + 0.9856474 * n;
+  const anomaly = (357.528 + 0.9856003 * n) * rad;
+  const lambda = (meanLongitude + 1.915 * Math.sin(anomaly) + 0.02 * Math.sin(2 * anomaly)) * rad;
+  const obliquity = (23.439 - 0.0000004 * n) * rad;
+  const rightAscension = Math.atan2(Math.cos(obliquity) * Math.sin(lambda), Math.cos(lambda)) / rad;
+  const declination = Math.asin(Math.sin(obliquity) * Math.sin(lambda)) / rad;
+  const siderealTime = 280.46061837 + 360.98564736629 * n;
+  return {
+    latitude: declination,
+    longitude: ((((rightAscension - siderealTime) % 360) + 540) % 360) - 180,
+  };
+}
+
+/**
+ * Whether the sun is up at a place, by the same geometry as the sunset line
+ * on the globe (centre of the sun 0.833° below the horizon, refraction included).
+ */
+export function isSunUp(latitude: number, longitude: number, subsolar: { latitude: number; longitude: number }) {
+  const rad = Math.PI / 180;
+  const sinAltitude =
+    Math.sin(latitude * rad) * Math.sin(subsolar.latitude * rad) +
+    Math.cos(latitude * rad) * Math.cos(subsolar.latitude * rad) * Math.cos((longitude - subsolar.longitude) * rad);
+  return sinAltitude > Math.sin(-0.833 * rad);
+}

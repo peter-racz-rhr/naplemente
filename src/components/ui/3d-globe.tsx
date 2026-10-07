@@ -375,20 +375,33 @@ function RotatingGlobe({
 // ============================================================================
 
 /**
- * Lights the globe from a sun that is fixed relative to the camera, so the
- * line between day and night (where the sun is setting right now) always
- * stays in view while the Earth turns underneath it.
+ * Day side, city lights on the night side, and a glowing sunset line between.
+ * With sunSpace "view" the sun is fixed relative to the camera, so the sunset
+ * line always stays in view while the Earth turns underneath it. With "object"
+ * the sun is fixed to the Earth (a real sun position), so the line turns with it.
  */
-function createDayNightMaterial({
+export function createDayNightMaterial({
   day,
   night,
   sunDirection,
   terminatorColor,
+  sunSpace = "view",
+  seam = 0.02,
+  seamWidth = 0.045,
+  seamStrength = 1,
+  seamHalo = 0,
 }: {
   day: THREE.Texture;
   night: THREE.Texture;
   sunDirection: [number, number, number];
   terminatorColor: string;
+  sunSpace?: "view" | "object";
+  /** Where the glow peaks, as the sine of the sun's altitude there. */
+  seam?: number;
+  /** How wide and how bright the glow is, plus an optional soft halo around it. */
+  seamWidth?: number;
+  seamStrength?: number;
+  seamHalo?: number;
 }) {
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -396,14 +409,21 @@ function createDayNightMaterial({
       nightMap: { value: night },
       sunDirection: { value: new THREE.Vector3(...sunDirection).normalize() },
       terminatorColor: { value: new THREE.Color(terminatorColor) },
+      seam: { value: seam },
+      seamWidth: { value: seamWidth },
+      seamStrength: { value: seamStrength },
+      seamHalo: { value: seamHalo },
     },
+    defines: sunSpace === "object" ? { SUN_IN_OBJECT: "" } : {},
     vertexShader: `
       varying vec2 vUv;
       varying vec3 vNormalView;
+      varying vec3 vNormalObject;
       varying vec3 vViewPosition;
       void main() {
         vUv = uv;
         vNormalView = normalize(normalMatrix * normal);
+        vNormalObject = normal;
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         vViewPosition = mvPosition.xyz;
         gl_Position = projectionMatrix * mvPosition;
@@ -414,13 +434,22 @@ function createDayNightMaterial({
       uniform sampler2D nightMap;
       uniform vec3 sunDirection;
       uniform vec3 terminatorColor;
+      uniform float seam;
+      uniform float seamWidth;
+      uniform float seamStrength;
+      uniform float seamHalo;
       varying vec2 vUv;
       varying vec3 vNormalView;
+      varying vec3 vNormalObject;
       varying vec3 vViewPosition;
 
       void main() {
         vec3 normal = normalize(vNormalView);
-        float sun = dot(normal, sunDirection);
+        #ifdef SUN_IN_OBJECT
+          float sun = dot(normalize(vNormalObject), sunDirection);
+        #else
+          float sun = dot(normal, sunDirection);
+        #endif
 
         vec3 dayColor = texture2D(dayMap, vUv).rgb;
         vec3 nightColor = texture2D(nightMap, vUv).rgb * 1.6;
@@ -431,13 +460,24 @@ function createDayNightMaterial({
         vec3 color = mix(nightColor, lit, daylight);
 
         // Late-afternoon warmth on the day side close to the line.
-        float lateLight = smoothstep(0.45, 0.0, sun) * daylight;
+        // With a real sun, only the evening half of the line is a sunset:
+        // the morning half (sunrise) stays plain.
+        #ifdef SUN_IN_OBJECT
+          vec3 east = normalize(cross(vec3(0.0, 1.0, 0.0), sunDirection));
+          float evening = smoothstep(-0.03, 0.03, dot(normalize(vNormalObject), east));
+        #else
+          float evening = 1.0;
+        #endif
+
+        float lateLight = smoothstep(0.45, 0.0, sun) * daylight * evening;
         color = mix(color, color * vec3(1.5, 0.95, 0.6), lateLight * 0.8);
 
         // The sunset line itself: a narrow warm seam, brightest where it
         // meets the day side so it reads as light, not paint.
-        float band = exp(-pow((sun - 0.02) / 0.045, 2.0));
-        color += terminatorColor * band * (0.35 + 0.9 * dayColor.g);
+        float band = exp(-pow((sun - seam) / seamWidth, 2.0))
+          + seamHalo * exp(-pow((sun - seam) / (seamWidth * 5.0), 2.0));
+        band *= evening;
+        color += terminatorColor * band * seamStrength * (0.35 + 0.9 * dayColor.g);
 
         // Thin atmosphere on the rim, warm where the sun is setting.
         vec3 viewDir = normalize(-vViewPosition);

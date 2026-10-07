@@ -1,0 +1,33 @@
+/** Big cities for the sunset globe, west to east. */
+export type City = { id: string; name: string; latitude: number; longitude: number; timeZone: string };
+
+export const CITIES: City[] = [
+  { id: "honolulu", name: "Honolulu", latitude: 21.307, longitude: -157.858, timeZone: "Pacific/Honolulu" },
+  { id: "los-angeles", name: "Los Angeles", latitude: 34.052, longitude: -118.244, timeZone: "America/Los_Angeles" },
+  { id: "mexico-city", name: "Mexico City", latitude: 19.433, longitude: -99.133, timeZone: "America/Mexico_City" },
+  { id: "new-york", name: "New York", latitude: 40.713, longitude: -74.006, timeZone: "America/New_York" },
+  { id: "buenos-aires", name: "Buenos Aires", latitude: -34.604, longitude: -58.382, timeZone: "America/Argentina/Buenos_Aires" },
+  { id: "rio", name: "Rio de Janeiro", latitude: -22.907, longitude: -43.173, timeZone: "America/Sao_Paulo" },
+  { id: "reykjavik", name: "Reykjavík", latitude: 64.147, longitude: -21.943, timeZone: "Atlantic/Reykjavik" },
+  { id: "lisbon", name: "Lisbon", latitude: 38.722, longitude: -9.139, timeZone: "Europe/Lisbon" },
+  { id: "london", name: "London", latitude: 51.507, longitude: -0.128, timeZone: "Europe/London" },
+  { id: "lagos", name: "Lagos", latitude: 6.524, longitude: 3.379, timeZone: "Africa/Lagos" },
+  { id: "paris", name: "Paris", latitude: 48.857, longitude: 2.352, timeZone: "Europe/Paris" },
+  { id: "cape-town", name: "Cape Town", latitude: -33.925, longitude: 18.424, timeZone: "Africa/Johannesburg" },
+  { id: "budapest", name: "Budapest", latitude: 47.498, longitude: 19.04, timeZone: "Europe/Budapest" },
+  { id: "santorini", name: "Santorini", latitude: 36.393, longitude: 25.461, timeZone: "Europe/Athens" },
+  { id: "istanbul", name: "Istanbul", latitude: 41.008, longitude: 28.978, timeZone: "Europe/Istanbul" },
+  { id: "cairo", name: "Cairo", latitude: 30.044, longitude: 31.236, timeZone: "Africa/Cairo" },
+  { id: "nairobi", name: "Nairobi", latitude: -1.286, longitude: 36.817, timeZone: "Africa/Nairobi" },
+  { id: "moscow", name: "Moscow", latitude: 55.756, longitude: 37.617, timeZone: "Europe/Moscow" },
+  { id: "dubai", name: "Dubai", latitude: 25.205, longitude: 55.271, timeZone: "Asia/Dubai" },
+  { id: "mumbai", name: "Mumbai", latitude: 19.076, longitude: 72.878, timeZone: "Asia/Kolkata" },
+  { id: "bangkok", name: "Bangkok", latitude: 13.756, longitude: 100.502, timeZone: "Asia/Bangkok" },
+  { id: "singapore", name: "Singapore", latitude: 1.352, longitude: 103.82, timeZone: "Asia/Singapore" },
+  { id: "hong-kong", name: "Hong Kong", latitude: 22.319, longitude: 114.169, timeZone: "Asia/Hong_Kong" },
+  { id: "bali", name: "Bali", latitude: -8.65, longitude: 115.217, timeZone: "Asia/Makassar" },
+  { id: "seoul", name: "Seoul", latitude: 37.567, longitude: 126.978, timeZone: "Asia/Seoul" },
+  { id: "tokyo", name: "Tokyo", latitude: 35.676, longitude: 139.65, timeZone: "Asia/Tokyo" },
+  { id: "sydney", name: "Sydney", latitude: -33.869, longitude: 151.209, timeZone: "Australia/Sydney" },
+  { id: "auckland", name: "Auckland", latitude: -36.848, longitude: 174.763, timeZone: "Pacific/Auckland" },
+];

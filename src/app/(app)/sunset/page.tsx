@@ -6,6 +6,7 @@ import { LiveSky } from "@/components/live-sky";
 import { ActionButton } from "@/components/onboarding/action-button";
 import { PageTransition } from "@/components/page-transition";
 import { SunsetForecast } from "@/components/sunset-forecast";
+import { WorldSunsets } from "@/components/world-sunsets";
 import { Carousel_002 } from "@/components/ui/skiper-ui/skiper48";
 import { SOCIAL_ENABLED } from "@/lib/features";
 import { SAMPLE_SUNSETS } from "@/lib/sample-sunsets";
@@ -143,19 +144,35 @@ export default function SunsetPage() {
             </section>
           )}
 
-          <section className="mt-12" aria-labelledby="saved-heading">
-            <h2 id="saved-heading" className="t-section">
-              {SOCIAL_ENABLED ? "Sunsets your friends saved" : "Sunset inspiration"}
+          <section className="mt-12" aria-labelledby="world-heading">
+            <h2 id="world-heading" className="t-section">
+              Sunset around the world
             </h2>
-            <div className="-mx-6 mt-6 flex justify-center">
-              <Carousel_002
-                images={slides}
-                loop
-                spaceBetween={24}
-                cardClassName="h-[min(62dvh,460px)] w-[min(74vw,320px)]"
-              />
-            </div>
+            <p className="mt-1 text-[1.0625rem] text-haze">
+              The glowing line is where the sun is setting right now. Drag to turn the Earth, tap a city.
+            </p>
+            {onDevice ? (
+              <WorldSunsets now={now} you={here.coords} />
+            ) : (
+              <div className="-mx-6 mt-2 aspect-square" />
+            )}
           </section>
+
+          {SOCIAL_ENABLED && (
+            <section className="mt-12" aria-labelledby="saved-heading">
+              <h2 id="saved-heading" className="t-section">
+                Sunsets your friends saved
+              </h2>
+              <div className="-mx-6 mt-6 flex justify-center">
+                <Carousel_002
+                  images={slides}
+                  loop
+                  spaceBetween={24}
+                  cardClassName="h-[min(62dvh,460px)] w-[min(74vw,320px)]"
+                />
+              </div>
+            </section>
+          )}
         </div>
       </main>
     </PageTransition>
