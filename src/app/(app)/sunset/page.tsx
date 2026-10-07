@@ -149,7 +149,7 @@ export default function SunsetPage() {
               Sunset around the world
             </h2>
             <p className="mt-1 text-[1.0625rem] text-haze">
-              The glowing line is where the sun is setting right now. Drag to turn the Earth, tap a city.
+              The glowing line is where the sun is setting right now. Drag to turn the Earth, pinch to zoom, tap a city.
             </p>
             {onDevice ? (
               <WorldSunsets now={now} you={here.coords} />

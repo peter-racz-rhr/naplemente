@@ -2,15 +2,18 @@
 
 import { useTexture } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { createSun } from "@/components/sun-model";
 import { createDayNightMaterial } from "@/components/ui/3d-globe";
 
 /*
   The Earth with the real sun on it: the glowing line is where the sun is
   setting right now, and it moves as the minutes pass. Drag sideways to turn
-  it (up and down still scrolls the page), tap a city to pick it. It only
-  draws while something moves, so it costs nothing when it's still.
+  it (up and down still scrolls the page), pinch to zoom, tap a city to pick
+  it. The sun itself hangs out in space in its real direction, so turning the
+  night side towards you shows it behind the Earth. It only draws while
+  something moves, so it costs nothing when it's still.
 */
 
 export type GlobeDot = {
@@ -30,6 +33,7 @@ type Motion = {
   seen: boolean;
   still: boolean;
   dragging: boolean;
+  distance: number; // camera distance from the Earth's centre, in Earth radii
   velocity: number; // radians per ms, after a fling
   last: number;
   target: View | null;
@@ -45,6 +49,15 @@ function tweenToTarget(m: Motion, duration: number) {
 }
 
 const RAD = Math.PI / 180;
+const REST_DISTANCE = 4.3;
+const MIN_DISTANCE = 1.6;
+const MAX_DISTANCE = 13;
+// Closer than this, swap in the sharper 4K maps, and name every city.
+const SHARP_AT = 3.2;
+const NAMES_AT = 2.9;
+// Not to scale (the real sun is 23,000 Earth radii away), just far enough to
+// sit behind the Earth when you look at the night side.
+const SUN_DISTANCE = 24;
 const MAX_TILT = 60 * RAD;
 // The real sunset line: the sun's centre 0.833° below the horizon.
 const SUNSET_SEAM = Math.sin(-0.833 * RAD);
@@ -69,15 +82,32 @@ const viewOf = ({ latitude, longitude }: Place): View => ({
   tilt: clamp(latitude * RAD, -MAX_TILT, MAX_TILT),
 });
 
-/** Cities fade out as they turn towards the edge, instead of hanging off it. */
-function fadeEdgeDots(globe: THREE.Group, at: THREE.Vector3) {
+/**
+ * Cities fade out as they turn towards the edge, instead of hanging off it,
+ * and keep about the same size on screen as you zoom.
+ */
+function fadeEdgeDots(globe: THREE.Group, at: THREE.Vector3, distance: number) {
+  const scale = Math.pow((distance - 1) / (REST_DISTANCE - 1), 0.7);
   for (const dot of globe.children) {
     if (!dot.userData.dot) continue;
     dot.getWorldPosition(at);
-    const fade = clamp((at.z / at.length() - 0.15) / 0.2, 0, 1);
+    const fade = clamp((at.z / at.length() - 1 / distance - 0.02) / 0.15, 0, 1);
     dot.visible = fade > 0;
+    dot.scale.setScalar(scale);
     for (const sprite of dot.children as THREE.Sprite[]) sprite.material.opacity = sprite.userData.opacity * fade;
   }
+}
+
+/** The sun far out along its real direction, always facing the camera. */
+function placeSun(sun: THREE.Object3D, globe: THREE.Group, direction: THREE.Vector3) {
+  sun.position.copy(direction).multiplyScalar(SUN_DISTANCE);
+  sun.scale.setScalar(0.75);
+  sun.quaternion.copy(globe.quaternion).invert();
+}
+
+function setMaps(material: THREE.ShaderMaterial, day: THREE.Texture, night: THREE.Texture) {
+  material.uniforms.dayMap.value = day;
+  material.uniforms.nightMap.value = night;
 }
 
 function spriteTexture(draw: (g: CanvasRenderingContext2D, s: number) => void) {
@@ -123,8 +153,8 @@ type Props = {
   selected: GlobeDot | null;
   /** Goes up each time a city is picked, so picking it again re-centres it. */
   focus: number;
-  /** Where the picked city is on the canvas (px), to put its label there. */
-  onLabel: (x: number, y: number, visible: boolean) => void;
+  /** Where a city's label goes on the canvas (px), and how visible it is (0–1). */
+  onLabel: (id: string, x: number, y: number, opacity: number) => void;
   onPick: (id: string) => void;
   /** The viewer turned the globe themselves. */
   onTurn: () => void;
@@ -156,6 +186,8 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
     [day, night],
   );
   const textures = useMemo(() => ({ dot: dotTexture(), ring: ringTexture() }), []);
+  const sunModel = useMemo(() => createSun(0, { occludable: true }), []);
+  const [sharp, setSharp] = useState(false);
   const globe = useRef<THREE.Group>(null);
   const { camera, gl, size, invalidate } = useThree();
 
@@ -167,6 +199,7 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
     seen: false,
     still: false,
     dragging: false,
+    distance: REST_DISTANCE,
     velocity: 0,
     last: 0,
     target: null,
@@ -189,9 +222,37 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       material.dispose();
       textures.dot.dispose();
       textures.ring.dispose();
+      sunModel.dispose();
     },
-    [material, textures],
+    [material, textures, sunModel],
   );
+
+  // Zoomed in, the 2K maps go soft: load the 4K ones once, in the background.
+  useEffect(() => {
+    if (!sharp) return;
+    let alive = true;
+    const loader = new THREE.TextureLoader();
+    const load = (url: string) =>
+      loader.loadAsync(url).then((t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+        return t;
+      });
+    let loaded: THREE.Texture[] = [];
+    void Promise.all([load("/textures/earth-day-4k.jpg"), load("/textures/earth-night-4k.jpg")])
+      .then(([day4k, night4k]) => {
+        loaded = [day4k, night4k];
+        if (!alive) return;
+        setMaps(material, day4k, night4k);
+        invalidate();
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+      setMaps(material, day, night);
+      for (const t of loaded) t.dispose();
+    };
+  }, [sharp, material, day, night, gl, invalidate]);
 
   // The sun, where it really is right now.
   useEffect(() => {
@@ -241,14 +302,47 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
     const m = motion.current;
     let drag: null | { id: number; x: number; y: number; yaw: number; tilt: number; moved: boolean; px: number; pt: number } =
       null;
+    // Fingers on the globe, for pinch-to-zoom.
+    const fingers = new Map<number, { x: number; y: number }>();
+    let pinch: null | { gap: number; distance: number } = null;
+    let askedSharp = false;
+    const gap = () => {
+      const [a, b] = [...fingers.values()];
+      return Math.max(Math.hypot(a.x - b.x, a.y - b.y), 1);
+    };
+    const zoomTo = (distance: number) => {
+      m.distance = clamp(distance, MIN_DISTANCE, MAX_DISTANCE);
+      if (m.distance < SHARP_AT && !askedSharp) {
+        askedSharp = true;
+        setSharp(true);
+      }
+      invalidate();
+    };
 
     const down = (e: PointerEvent) => {
+      fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (fingers.size === 2) {
+        // A second finger: stop turning, start zooming.
+        drag = null;
+        m.dragging = false;
+        m.tween = null;
+        m.target = null;
+        m.velocity = 0;
+        pinch = { gap: gap(), distance: m.distance };
+        latest.current.onTurn();
+        return;
+      }
       if (!e.isPrimary || drag) return;
       // A finger on the globe stops a coasting spin.
       m.velocity = 0;
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY, yaw: m.yaw, tilt: m.tilt, moved: false, px: e.clientX, pt: e.timeStamp };
     };
     const move = (e: PointerEvent) => {
+      if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && fingers.size >= 2) {
+        zoomTo((pinch.distance * pinch.gap) / gap());
+        return;
+      }
       if (!drag || e.pointerId !== drag.id) return;
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
@@ -274,7 +368,8 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
         latest.current.onTurn();
         return;
       }
-      const k = Math.PI / el.clientWidth; // a full-width drag turns it half way round
+      // A full-width drag turns it half way round; less when zoomed in.
+      const k = (Math.PI / el.clientWidth) * clamp((m.distance - 1) / (REST_DISTANCE - 1), 0.15, 1.2);
       m.yaw = drag.yaw + dx * k;
       m.tilt = clamp(drag.tilt + dy * k, -MAX_TILT, MAX_TILT);
       const dt = Math.max(e.timeStamp - drag.pt, 1);
@@ -283,7 +378,12 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       drag.pt = e.timeStamp;
       invalidate();
     };
+    const lift = (e: PointerEvent) => {
+      fingers.delete(e.pointerId);
+      if (fingers.size < 2) pinch = null;
+    };
     const up = (e: PointerEvent) => {
+      lift(e);
       if (!drag || e.pointerId !== drag.id) return;
       if (drag.moved) {
         // Keep spinning a little after a fling, unless the finger stopped
@@ -299,6 +399,7 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       invalidate();
     };
     const cancel = (e: PointerEvent) => {
+      lift(e);
       if (!drag || e.pointerId !== drag.id) return;
       m.dragging = false;
       drag = null;
@@ -315,7 +416,7 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       let bestDistance = 28;
       for (const dot of latest.current.dots) {
         toVector(dot.latitude, dot.longitude, 1, at).applyMatrix4(group.matrixWorld);
-        if (at.z < 0.3) continue; // on the far side
+        if (at.z < 1 / m.distance + 0.05) continue; // round the back
         at.project(camera);
         const x = rect.left + ((at.x + 1) / 2) * rect.width;
         const y = rect.top + ((1 - at.y) / 2) * rect.height;
@@ -328,11 +429,20 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       if (best) latest.current.onPick(best);
     };
 
+    // Trackpad pinch (and ctrl + wheel) zooms too; a plain wheel still scrolls the page.
+    const wheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      zoomTo(m.distance * Math.exp(e.deltaY * 0.01));
+    };
+
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
     el.addEventListener("pointercancel", cancel);
+    el.addEventListener("wheel", wheel, { passive: false });
     return () => {
+      el.removeEventListener("wheel", wheel);
       el.removeEventListener("pointerdown", down);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
@@ -342,7 +452,7 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
 
   const labelAt = useMemo(() => new THREE.Vector3(), []);
   const dotAt = useMemo(() => new THREE.Vector3(), []);
-  useFrame(() => {
+  useFrame((_, delta) => {
     const group = globe.current;
     if (!group) return;
     const m = motion.current;
@@ -363,18 +473,28 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       moving = true;
     }
     m.last = now;
+    camera.position.setZ(m.distance);
     group.rotation.set(m.tilt, m.yaw, 0);
     group.updateMatrixWorld();
 
-    fadeEdgeDots(group, dotAt);
+    fadeEdgeDots(group, dotAt, m.distance);
+    placeSun(sunModel.scene, group, material.uniforms.sunDirection.value);
+    sunModel.update(Math.min(delta, 0.1));
 
-    // Keep the label on the picked city, hidden when it's round the back.
-    const picked = latest.current.selected;
-    if (picked) {
-      toVector(picked.latitude, picked.longitude, 1, labelAt).applyMatrix4(group.matrixWorld);
-      const facing = labelAt.z;
+    // Labels: the picked city always (unless it's round the back), the
+    // others only once you've zoomed in.
+    const names = clamp((NAMES_AT - m.distance) / 0.4, 0, 1);
+    const { dots: all, selected: picked, onLabel: place } = latest.current;
+    for (const dot of all) {
+      const isPicked = dot.id === picked?.id;
+      if (!isPicked && names === 0) {
+        place(dot.id, 0, 0, 0);
+        continue;
+      }
+      toVector(dot.latitude, dot.longitude, 1, labelAt).applyMatrix4(group.matrixWorld);
+      const facing = clamp((labelAt.z - 1 / m.distance - 0.15) / 0.15, 0, 1);
       labelAt.project(camera);
-      latest.current.onLabel(((labelAt.x + 1) / 2) * size.width, ((1 - labelAt.y) / 2) * size.height, facing > 0.35);
+      place(dot.id, ((labelAt.x + 1) / 2) * size.width, ((1 - labelAt.y) / 2) * size.height, isPicked ? facing : facing * names);
     }
     if (moving) invalidate();
   });
@@ -382,8 +502,9 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
   return (
     <group ref={globe}>
       <mesh material={material}>
-        <sphereGeometry args={[1, 96, 64]} />
+        <sphereGeometry args={[1, 128, 96]} />
       </mesh>
+      <primitive object={sunModel.scene} />
       {dots.map((dot) => {
         const tone = TONES[dot.tone];
         const position = toVector(dot.latitude, dot.longitude, 1.012);
@@ -421,7 +542,7 @@ export function WorldGlobe(props: Props) {
       frameloop="demand"
       dpr={[1, 2]}
       gl={{ alpha: true, antialias: true }}
-      camera={{ fov: 30, position: [0, 0, 4.3], near: 0.1, far: 20 }}
+      camera={{ fov: 30, position: [0, 0, REST_DISTANCE], near: 0.05, far: 200 }}
       style={{ touchAction: "pan-y" }}
     >
       <Suspense fallback={null}>

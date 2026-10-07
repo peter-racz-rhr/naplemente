@@ -69,11 +69,13 @@ const discVertex = /* glsl */ `
 varying vec3 vObj;
 varying vec3 vNormal;
 varying vec2 vView;
+varying vec3 vViewPos;
 void main(){
   vObj = position;
   vNormal = normalize(normalMatrix * normal);
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   vView = mv.xy;
+  vViewPos = mv.xyz;
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -89,9 +91,14 @@ uniform vec3 uLimbTint;
 varying vec3 vObj;
 varying vec3 vNormal;
 varying vec2 vView;
+varying vec3 vViewPos;
+uniform float uPerspective;
 ${SIMPLEX}
 void main(){
-  float mu = clamp(normalize(vNormal).z, 0.0, 1.0);
+  // How squarely the surface faces us. In a perspective scene the sun is off
+  // to the side, so measure against the real line of sight.
+  vec3 n = normalize(vNormal);
+  float mu = clamp(mix(n.z, dot(n, normalize(-vViewPos)), uPerspective), 0.0, 1.0);
   // Mild limb darkening; overexposure hides most of it on a high sun.
   float limb = 1.0 - uLimbDark * (1.0 - pow(mu, 0.55));
   vec3 tint = mix(uLimbTint, uTint, pow(mu, uTintPow));
@@ -298,8 +305,11 @@ export type SunModel = {
   dispose: () => void;
 };
 
-/** warmth: 0 = sun high in the sky (white-gold), 1 = on the horizon (deep orange). */
-export function createSun(warmth: number): SunModel {
+/**
+ * warmth: 0 = sun high in the sky (white-gold), 1 = on the horizon (deep orange).
+ * occludable: the glow hides behind nearer things (for a sun inside a bigger scene).
+ */
+export function createSun(warmth: number, { occludable = false } = {}): SunModel {
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-S, S, S, -S, 0.1, 20);
   camera.position.set(0, 0, 10);
@@ -315,6 +325,7 @@ export function createSun(warmth: number): SunModel {
     uTintPow: f(1),
     uTint: v3(),
     uLimbTint: v3(),
+    uPerspective: f(occludable ? 1 : 0),
   };
   // The glow's shape and strength, one uniform each (uBloomAmp, uBloomK, …).
   const params = Object.fromEntries(HALO_PARAMS.map((k) => [k, f()])) as Record<
@@ -345,7 +356,7 @@ export function createSun(warmth: number): SunModel {
       vertexShader: haloVertex,
       fragmentShader: haloFragment,
       transparent: true,
-      depthTest: false,
+      depthTest: occludable,
       depthWrite: false,
       // Premultiplied "over", so the glow composites correctly on a transparent canvas.
       blending: THREE.CustomBlending,
@@ -356,7 +367,9 @@ export function createSun(warmth: number): SunModel {
       blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
     }),
   );
-  halo.position.z = 2;
+  // Inside a perspective scene the glow sits at the sun's centre, or parallax
+  // would shift its hole for the disc off to one side.
+  halo.position.z = occludable ? 0 : 2;
   halo.renderOrder = 1;
   scene.add(halo);
 

@@ -63,7 +63,7 @@ export function WorldSunsets({
   const [picked, setPicked] = useState<string | null>(null);
   const [focus, setFocus] = useState(0);
   const [ready, setReady] = useState(false);
-  const label = useRef<HTMLDivElement>(null);
+  const labels = useRef(new Map<string, HTMLDivElement>());
 
   const places = useMemo(() => {
     const list = CITIES.map((city) => describePlace(city, now));
@@ -94,11 +94,11 @@ export function WorldSunsets({
   }, []);
   // Once you've turned the globe yourself, stop following the next sunset.
   const turned = useCallback(() => setPicked((id) => id ?? selected.id), [selected.id]);
-  const placeLabel = useCallback((x: number, y: number, visible: boolean) => {
-    const el = label.current;
+  const placeLabel = useCallback((id: string, x: number, y: number, opacity: number) => {
+    const el = labels.current.get(id);
     if (!el) return;
     el.style.transform = `translate(${x}px, ${y}px)`;
-    el.style.opacity = visible ? "1" : "0";
+    el.style.opacity = String(opacity);
   }, []);
   const onReady = useCallback(() => setReady(true), []);
 
@@ -124,17 +124,34 @@ export function WorldSunsets({
           onTurn={turned}
           onReady={onReady}
         />
-        {/* Name and local sunset time, kept over the picked city by the globe */}
-        <div ref={label} aria-hidden className="pointer-events-none absolute top-0 left-0 opacity-0 transition-opacity duration-200">
-          <div className="-translate-x-1/2 -translate-y-full pb-5 text-center leading-tight whitespace-nowrap [text-shadow:0_1px_8px_rgb(0_0_0/0.9)]">
-            <span className="block text-[0.9375rem] font-semibold">{selected.name}</span>
-            {when && (
-              <span className="block text-[0.8125rem] text-gold tabular-nums">
-                {localClock(when, selected.timeZone)}
+        {/* Labels the globe keeps over the cities: the picked one with its
+            local sunset time, the rest by name once you zoom in. */}
+        {places.map((place) => (
+          <div
+            key={place.id}
+            ref={(el) => {
+              if (el) labels.current.set(place.id, el);
+              else labels.current.delete(place.id);
+            }}
+            aria-hidden
+            className="pointer-events-none absolute top-0 left-0 opacity-0"
+          >
+            {place.id === selected.id ? (
+              <div className="-translate-x-1/2 -translate-y-full pb-5 text-center leading-tight whitespace-nowrap [text-shadow:0_1px_8px_rgb(0_0_0/0.9)]">
+                <span className="block text-[0.9375rem] font-semibold">{place.name}</span>
+                {when && (
+                  <span className="block text-[0.8125rem] text-gold tabular-nums">
+                    {localClock(when, place.timeZone)}
+                  </span>
+                )}
+              </div>
+            ) : place.id === "you" ? null : (
+              <span className="block -translate-x-1/2 -translate-y-full pb-2 text-[0.75rem] whitespace-nowrap text-ink/85 [text-shadow:0_1px_6px_rgb(0_0_0/0.9)]">
+                {place.name}
               </span>
             )}
           </div>
-        </div>
+        ))}
       </div>
 
       {/* The picked city in words */}
