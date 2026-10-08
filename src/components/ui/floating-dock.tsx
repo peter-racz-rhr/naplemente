@@ -117,7 +117,7 @@ function IconContainer({
             layoutId="dock-active-disc"
             aria-hidden
             className="absolute inset-0 rounded-full bg-white/14"
-            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+            transition={{ type: "spring", duration: 0.55, bounce: 0.12 }}
           />
         )}
         <AnimatePresence>
