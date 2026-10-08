@@ -4,6 +4,7 @@ import { CloudRain, Thermometer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchSunsetForecast, type SunsetDay, type SunsetQuality } from "@/lib/forecast";
 import { cn } from "@/lib/utils";
+import { LOCALE } from "@/lib/locale";
 
 export const QUALITY: Record<SunsetQuality, { label: string; text: string }> = {
   great: { label: "Great", text: "text-gold" },
@@ -17,7 +18,7 @@ const weekday = (date: string, index: number) =>
     ? "Tonight"
     : index === 1
       ? "Tomorrow"
-      : new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(
+      : new Intl.DateTimeFormat(LOCALE, { weekday: "long" }).format(
           new Date(`${date}T12:00:00`),
         );
 

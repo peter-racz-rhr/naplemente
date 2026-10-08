@@ -1,4 +1,5 @@
 import { getPosition, getTimes } from "suncalc";
+import { LOCALE } from "@/lib/locale";
 
 export type NextSunset =
   | { kind: "sunset"; at: Date; isToday: boolean }
@@ -36,7 +37,7 @@ export function formatCountdown(ms: number) {
 }
 
 export const formatClock = (date: Date) =>
-  new Intl.DateTimeFormat(undefined, {
+  new Intl.DateTimeFormat(LOCALE, {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);

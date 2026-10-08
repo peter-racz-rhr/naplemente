@@ -8,8 +8,9 @@ import { PageTransition } from "@/components/page-transition";
 import { personById } from "@/lib/demo-people";
 import { sendMessage, useChats } from "@/lib/social";
 import { cn } from "@/lib/utils";
+import { LOCALE } from "@/lib/locale";
 
-const clock = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+const clock = new Intl.DateTimeFormat(LOCALE, { hour: "numeric", minute: "2-digit" });
 
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();

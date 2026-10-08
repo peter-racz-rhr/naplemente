@@ -7,6 +7,7 @@ import type { GlobeDot } from "@/components/world-globe";
 import { formatClock, formatCountdown, isSunUp, nextSunset, subsolarPoint } from "@/lib/sun";
 import { cn } from "@/lib/utils";
 import { CITIES, type City } from "@/lib/world-cities";
+import { LOCALE } from "@/lib/locale";
 
 const WorldGlobe = dynamic(() => import("./world-globe").then((m) => m.WorldGlobe), { ssr: false });
 
@@ -36,7 +37,7 @@ function describePlace(city: City, now: Date, you = false): Place {
 /** Clock time in the city's own time zone (or the phone's, for "you"). */
 const localClock = (date: Date, timeZone: string) =>
   timeZone
-    ? new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit", timeZone }).format(date)
+    ? new Intl.DateTimeFormat(LOCALE, { hour: "numeric", minute: "2-digit", timeZone }).format(date)
     : formatClock(date);
 
 function sentence(place: Place, now: Date) {

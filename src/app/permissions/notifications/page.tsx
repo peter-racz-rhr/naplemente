@@ -11,13 +11,14 @@ import { useSpots } from "@/lib/spots";
 import { formatClock, nextSunset } from "@/lib/sun";
 import { useHere } from "@/lib/use-here";
 import { cn } from "@/lib/utils";
+import { LOCALE } from "@/lib/locale";
 
 type State = "idle" | "asking" | "granted" | "denied" | "unsupported";
 
 /** How long before sunset the reminder goes out in the preview. */
 const LEAD_MINUTES = 35;
 
-const dateLine = new Intl.DateTimeFormat(undefined, {
+const dateLine = new Intl.DateTimeFormat(LOCALE, {
   weekday: "long",
   day: "numeric",
   month: "long",
