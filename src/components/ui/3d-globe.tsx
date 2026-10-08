@@ -15,6 +15,8 @@ export interface GlobeMarker {
   src: string;
   label?: string;
   size?: number;
+  /** Just a small glowing dot on the surface: no pin, no picture. */
+  dot?: boolean;
 }
 
 export interface Globe3DConfig {
@@ -266,6 +268,26 @@ function Marker({
   );
 }
 
+/** A small dot sitting on the surface, for "you are here". */
+function SurfaceDot({ marker, radius }: { marker: GlobeMarker; radius: number }) {
+  const position = useMemo(
+    () => latLngToVector3(marker.lat, marker.lng, radius * 1.004),
+    [marker.lat, marker.lng, radius],
+  );
+  return (
+    <group position={position}>
+      <mesh>
+        <sphereGeometry args={[radius * 0.024, 24, 16]} />
+        <meshBasicMaterial color="#ffb54d" transparent opacity={0.35} toneMapped={false} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[radius * 0.012, 24, 16]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
 // ============================================================================
 // Rotating Globe with Markers (all rotate together)
 // ============================================================================
@@ -358,7 +380,10 @@ function RotatingGlobe({
       )}
 
       {/* Markers - now inside the rotating group */}
-      {markers.map((marker, index) => (
+      {markers.map((marker, index) =>
+        marker.dot ? (
+          <SurfaceDot key={`dot-${index}-${marker.lat}-${marker.lng}`} marker={marker} radius={config.radius} />
+        ) : (
         <Marker
           key={`marker-${index}-${marker.lat}-${marker.lng}`}
           marker={marker}
@@ -367,7 +392,8 @@ function RotatingGlobe({
           onClick={onMarkerClick}
           onHover={onMarkerHover}
         />
-      ))}
+        ),
+      )}
     </group>
   );
 }
@@ -602,7 +628,7 @@ function Scene({
     if (focusLat === undefined || focusLng === undefined) return;
     glide.current = {
       from: new THREE.Vector3(),
-      to: latLngToVector3(focusLat, focusLng, config.radius * 2.4),
+      to: latLngToVector3(focusLat, focusLng, config.radius * 2.75),
       start: null,
     };
   }, [focusLat, focusLng, config.radius]);

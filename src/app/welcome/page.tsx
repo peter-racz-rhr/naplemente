@@ -102,6 +102,8 @@ export default function WelcomePage() {
           style={{
             width: GLOBE_SIZE,
             height: GLOBE_SIZE,
+            // Soft top edge: zoomed in, the planet fades out instead of being cut off.
+            maskImage: "linear-gradient(to bottom, transparent 0%, #000 13%)",
             transform: !ready
               ? sphereTopAt("85dvh")
               : showAccount

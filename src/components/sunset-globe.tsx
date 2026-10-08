@@ -9,24 +9,6 @@ const Globe3D = dynamic(
   { ssr: false },
 );
 
-/** Warm dot used as the photo stand-in for each spot until real photos exist. */
-const sunDot = (a: string, b: string) =>
-  `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><radialGradient id="g" cx="50%" cy="70%" r="70%"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient></defs><circle cx="5" cy="5" r="5" fill="url(#g)"/></svg>`,
-  )}`;
-
-// A handful of well-loved sunset spots, so the planet doesn't feel empty.
-const SPOTS: GlobeMarker[] = [
-  { lat: 47.502, lng: 19.035, label: "Halászbástya, Budapest", src: sunDot("#ffd08a", "#ff7a3d") },
-  { lat: 46.907, lng: 17.889, label: "Tihany, Balaton", src: sunDot("#ffd08a", "#f0648c") },
-  { lat: 36.462, lng: 25.376, label: "Oia, Santorini", src: sunDot("#ffe2a8", "#ff7a3d") },
-  { lat: 38.692, lng: -9.216, label: "Belém, Lisbon", src: sunDot("#ffd08a", "#f0648c") },
-  { lat: -8.829, lng: 115.085, label: "Uluwatu, Bali", src: sunDot("#ffe2a8", "#ff7a3d") },
-  { lat: -25.344, lng: 131.036, label: "Uluru", src: sunDot("#ffd08a", "#f0648c") },
-  { lat: 24.555, lng: -81.807, label: "Mallory Square, Key West", src: sunDot("#ffe2a8", "#ff7a3d") },
-  { lat: -33.957, lng: 18.384, label: "Camps Bay, Cape Town", src: sunDot("#ffd08a", "#f0648c") },
-];
-
 const CONFIG: Globe3DConfig = {
   textureUrl: "/textures/earth-day.jpg",
   bumpMapUrl: "/textures/earth-topology.jpg",
@@ -43,8 +25,6 @@ const CONFIG: Globe3DConfig = {
   initialRotation: { x: 0, y: 0 },
 };
 
-const YOU_DOT = sunDot("#ffffff", "#ffb54d");
-
 export function SunsetGlobe({
   className,
   onReady,
@@ -52,17 +32,12 @@ export function SunsetGlobe({
 }: {
   className?: string;
   onReady?: () => void;
-  /** The viewer's position, pinned once they share their location. */
+  /** The viewer's position, shown as a dot once they share their location. */
   you?: { latitude: number; longitude: number } | null;
 }) {
-  const markers = useMemo(
-    () =>
-      you
-        ? [
-            ...SPOTS,
-            { lat: you.latitude, lng: you.longitude, label: "You", src: YOU_DOT },
-          ]
-        : SPOTS,
+  // Nothing on the planet but a small dot where you are.
+  const markers = useMemo<GlobeMarker[]>(
+    () => (you ? [{ lat: you.latitude, lng: you.longitude, label: "You", src: "", dot: true }] : []),
     [you],
   );
 
@@ -73,7 +48,7 @@ export function SunsetGlobe({
       config={CONFIG}
       onReady={onReady}
       // Aim a little south of you: the globe sits low on the screen, so this
-      // lifts your pin up into view.
+      // lifts your dot up into view.
       focus={you ? { lat: Math.max(you.latitude - 12, -80), lng: you.longitude } : null}
     />
   );
