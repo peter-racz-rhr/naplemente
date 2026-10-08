@@ -145,6 +145,14 @@
   }
 }
 
+/* The big lock-screen clock in the notifications preview. */
+.lock-clock {
+  font-family: "SF Pro Display", -apple-system, "Inter Variable", sans-serif;
+  font-weight: 700;
+  font-variation-settings: "opsz" 32;
+  letter-spacing: -0.035em;
+}
+
 /* The wordmark's sun sits half under the horizon line. */
 .sun-mark {
   background: radial-gradient(

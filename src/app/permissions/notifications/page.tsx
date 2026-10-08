@@ -1,5 +1,6 @@
 "use client";
 
+import "@fontsource-variable/inter/opsz.css";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
@@ -111,7 +112,9 @@ export default function NotificationsPage() {
         <p className="text-[0.9375rem] text-haze animate-in fade-in duration-700">
           {dateLine.format(reminderAt)}
         </p>
-        <p className="mt-1 text-[5.5rem] leading-none font-[450] tracking-[-0.04em] tabular-nums [font-stretch:88%] animate-in fade-in duration-700">
+        {/* The lock screen's heavy clock: Apple's own font where there is one,
+            Inter Display (its closest free cousin) everywhere else. */}
+        <p className="lock-clock mt-1 text-[6rem] leading-none tabular-nums animate-in fade-in duration-700">
           {formatClock(reminderAt).replace(/\s?[AP]M$/i, "")}
         </p>
 

@@ -72,6 +72,9 @@ export function SunsetGlobe({
       markers={markers}
       config={CONFIG}
       onReady={onReady}
+      // Aim a little south of you: the globe sits low on the screen, so this
+      // lifts your pin up into view.
+      focus={you ? { lat: Math.max(you.latitude - 12, -80), lng: you.longitude } : null}
     />
   );
 }

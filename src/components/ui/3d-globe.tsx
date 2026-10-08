@@ -90,6 +90,8 @@ interface Globe3DProps {
   onMarkerHover?: (marker: GlobeMarker | null) => void;
   /** Called once the textures have loaded and the globe is on screen */
   onReady?: () => void;
+  /** Stop spinning and glide in to centre this place (e.g. the viewer). */
+  focus?: { lat: number; lng: number } | null;
 }
 
 // ============================================================================
@@ -554,6 +556,7 @@ function Atmosphere({ radius, color, intensity, blur }: AtmosphereProps) {
 // ============================================================================
 
 interface SceneProps {
+  focus?: { lat: number; lng: number } | null;
   markers: GlobeMarker[];
   config: Required<Globe3DConfig>;
   onMarkerClick?: (marker: GlobeMarker) => void;
@@ -562,6 +565,7 @@ interface SceneProps {
 }
 
 function Scene({
+  focus,
   markers,
   config,
   onMarkerClick,
@@ -587,6 +591,43 @@ function Scene({
     controls.autoRotateSpeed =
       config.introSpinSpeed +
       (config.autoRotateSpeed - config.introSpinSpeed) * eased;
+  });
+
+  // Glide in to a place: the camera swings round to face it and moves
+  // closer, easing in and out, and the spin stops.
+  const glide = useRef<{ from: THREE.Vector3; to: THREE.Vector3; start: number | null } | null>(null);
+  const focusLat = focus?.lat;
+  const focusLng = focus?.lng;
+  React.useEffect(() => {
+    if (focusLat === undefined || focusLng === undefined) return;
+    glide.current = {
+      from: new THREE.Vector3(),
+      to: latLngToVector3(focusLat, focusLng, config.radius * 2.4),
+      start: null,
+    };
+  }, [focusLat, focusLng, config.radius]);
+
+  useFrame((state) => {
+    const g = glide.current;
+    if (!g) return;
+    const controls = state.controls as { autoRotate: boolean; update: () => void } | null;
+    if (controls) controls.autoRotate = false;
+    const now = state.clock.elapsedTime;
+    if (g.start === null) {
+      g.start = now;
+      g.from.copy(state.camera.position);
+    }
+    const t = Math.min((now - g.start) / 2.2, 1);
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    // Swing along the sphere (not through it) while closing the distance.
+    const distance = g.from.length() + (g.to.length() - g.from.length()) * e;
+    const dir = g.from.clone().normalize();
+    const quat = new THREE.Quaternion().setFromUnitVectors(dir, g.to.clone().normalize());
+    const partial = new THREE.Quaternion().slerp(quat, e);
+    state.camera.position.copy(dir.applyQuaternion(partial).multiplyScalar(distance));
+    state.camera.lookAt(0, 0, 0);
+    controls?.update();
+    if (t >= 1) glide.current = null;
   });
 
   // Set initial camera position (pulled back to accommodate markers)
@@ -636,7 +677,7 @@ function Scene({
         minDistance={config.minDistance}
         maxDistance={config.maxDistance}
         rotateSpeed={0.4}
-        autoRotate={config.autoRotateSpeed > 0}
+        autoRotate={!focus && config.autoRotateSpeed > 0}
         autoRotateSpeed={config.autoRotateSpeed}
         enableDamping
         dampingFactor={0.1}
@@ -694,6 +735,7 @@ export function Globe3D({
   onMarkerClick,
   onMarkerHover,
   onReady,
+  focus,
 }: Globe3DProps) {
   const mergedConfig = useMemo(
     () => ({ ...defaultConfig, ...config }),
@@ -721,6 +763,7 @@ export function Globe3D({
       >
         <Suspense fallback={<LoadingFallback />}>
           <Scene
+            focus={focus}
             markers={markers}
             config={mergedConfig}
             onMarkerClick={onMarkerClick}
