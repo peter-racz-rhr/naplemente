@@ -9,8 +9,8 @@ import { createDayNightMaterial } from "@/components/ui/3d-globe";
 
 /*
   The Earth with the real sun on it: the glowing line is where the sun is
-  setting right now, and it moves as the minutes pass. Drag sideways to turn
-  it (up and down still scrolls the page), pinch to zoom, tap a city to pick
+  setting right now, and it moves as the minutes pass. Drag to turn it (the
+  page scrolls from outside the globe), pinch to zoom, tap a city to pick
   it. The sun itself hangs out in space in its real direction, so turning the
   night side towards you shows it behind the Earth. It only draws while
   something moves, so it costs nothing when it's still.
@@ -347,14 +347,10 @@ function Earth({ dots, sun, selected, focus, onLabel, onPick, onTurn, onReady }:
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
       if (!drag.moved) {
-        // Only a sideways drag turns the globe. Up and down belongs to the
-        // page scroll, and small wobbles still count as a tap.
+        // The globe owns every touch on it: any drag turns it (sideways
+        // spins, up and down tilts). Small wobbles still count as a tap.
         const slop = e.pointerType === "touch" ? 12 : 6;
-        if (Math.abs(dy) >= slop && Math.abs(dy) >= Math.abs(dx)) {
-          drag = null;
-          return;
-        }
-        if (Math.abs(dx) < slop) return;
+        if (Math.hypot(dx, dy) < slop) return;
         drag.moved = true;
         drag.yaw = m.yaw; // pick up from wherever an animation left it
         drag.tilt = m.tilt;
@@ -543,7 +539,7 @@ export function WorldGlobe(props: Props) {
       dpr={[1, 2]}
       gl={{ alpha: true, antialias: true }}
       camera={{ fov: 30, position: [0, 0, REST_DISTANCE], near: 0.05, far: 200 }}
-      style={{ touchAction: "pan-y" }}
+      style={{ touchAction: "none" }}
     >
       <Suspense fallback={null}>
         <Earth {...props} />
